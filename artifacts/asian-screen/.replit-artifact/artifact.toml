@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Asian Screen"
+description = "A premium discovery and streaming-style frontend for Korean, Chinese, Japanese, Thai, Taiwanese dramas, and Asian movies, powered by realistic local sample data and browser persistence."
+version = "1.0.0"
+id = "artifacts/asian-screen"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22356
+
+[services.development]
+run = "pnpm --filter @workspace/asian-screen run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/asian-screen", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/asian-screen/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22356"
+BASE_PATH = "/"
