@@ -1,0 +1,919 @@
+أريد تحويل الـAdmin Dashboard الحالي في هذا المشروع من Prototype يعتمد على localStorage إلى **Admin Dashboard حقيقي، محمي، ومربوط بقاعدة بيانات PostgreSQL**.
+
+## ⚠️ قواعد مهمة جدًا قبل البدء
+
+* لا تعيد بناء الموقع من الصفر.
+* لا تعيد تصميم الموقع العام.
+* لا تحذف الموقع الحالي أو بياناته الحالية.
+* لا تستبدل الـAdmin الحالي بالكامل.
+* حافظ على `/admin` كمسار الـAdmin.
+* استخدم واجهة الـAdmin الحالية كأساس وطوّرها.
+* لا تستخدم localStorage كمصدر أساسي لبيانات المحتوى بعد تنفيذ النظام الجديد.
+* لا تجعل البيانات العامة تعتمد على `src/lib/data.ts` بعد نقل المحتوى إلى قاعدة البيانات.
+* لا تنشئ duplicate models إذا كان هناك شيء موجود يمكن إعادة استخدامه.
+* لا تضف نظام تحميل للحلقات.
+* لا تضف Download Links أو Download URLs أو Download buttons أو أي نظام Download.
+* لا تضف نظام Quality.
+* لا تضف 360p / 480p / 720p / 1080p كحقول.
+* لا تضف arbitrary code editor داخل الـAdmin.
+* لا تغير الـbranding الحالي للموقع.
+* لا تستخدم بيانات أو روابط أو branding من أي موقع خارجي.
+* قبل تعديل الملفات، افحص المشروع والبنية الحالية بالكامل.
+
+## المرحلة 1 — فهم المشروع الحالي
+
+افحص أولًا:
+
+* `artifacts/asian-screen`
+* `artifacts/api-server`
+* `lib/db`
+* `src/lib/data.ts`
+* `src/lib/store.ts`
+* `App.tsx`
+* جميع routes الحالية
+* جميع components المتعلقة بالـAdmin
+* database configuration
+* authentication الموجودة حاليًا
+
+أنت تعرف من الفحص السابق أن:
+
+* `/admin` موجود.
+* الـAdmin الحالي Prototype.
+* البيانات الحالية في `src/lib/data.ts`.
+* الـAdmin يستخدم `localStorage`.
+* PostgreSQL موجود لكن schema حاليًا فارغ.
+* API حاليًا يحتوي فقط على health endpoint.
+* لا يوجد authentication حقيقي.
+* لا توجد models للمسلسلات والمواسم والحلقات وروابط المشاهدة.
+
+ابنِ النظام بناءً على هذه الحالة، ولكن **تحقق من الملفات الحالية بنفسك قبل الكتابة**.
+
+## المرحلة 2 — Database Schema
+
+أنشئ schema حقيقي في PostgreSQL باستخدام نفس نظام database/ORM الموجود في المشروع، ويفضل Drizzle إذا كان هو المستخدم حاليًا.
+
+أنشئ models مناسبة على الأقل لـ:
+
+### Admin Users
+
+* id
+* username أو email
+* passwordHash
+* role
+* createdAt
+* updatedAt
+
+لا تخزن passwords كنص عادي.
+
+Role يجب أن يكون قابلًا للتوسع مستقبلًا، مثل:
+
+* admin
+
+### Series / Titles
+
+استخدم model واحد مناسب للمحتوى إذا كان التصميم الحالي يعتمد على Title، أو افصل Series وMovies فقط إذا كان ذلك أفضل ومتوافقًا مع المشروع.
+
+البيانات المطلوبة للمحتوى:
+
+* id
+* title
+* originalTitle
+* slug
+* description
+* type
+* country
+* year
+* status
+* rating
+* poster
+* backdrop
+* language
+* director
+* cast
+* trailer
+* createdAt
+* updatedAt
+
+Type يجب أن يدعم على الأقل:
+
+* series
+* movie
+
+Status يجب أن يدعم:
+
+* upcoming
+* airing
+* completed
+
+ويجب أن تكون القيم قابلة للعرض بالعربية في الـAdmin والموقع.
+
+## المرحلة 3 — Genres
+
+أنشئ نظام Genres حقيقي إذا لم يكن موجودًا.
+
+يجب أن يستطيع المحتوى أن يحتوي على أكثر من Genre.
+
+مثل:
+
+* أكشن
+* رومانسي
+* كوميدي
+* دراما
+* غموض
+* إثارة
+* تاريخي
+* خيال
+* رعب
+* جريمة
+
+لا تضع genres كنص واحد إذا كان relational structure أفضل.
+
+استخدم many-to-many relationship إذا كان مناسبًا.
+
+## المرحلة 4 — Seasons
+
+أنشئ جدول Seasons مرتبط بالمسلسل.
+
+كل Season يحتوي على:
+
+* id
+* seriesId
+* seasonNumber
+* title اختياري
+* createdAt
+* updatedAt
+
+يجب أن يكون:
+
+Series
+→ Season 1
+→ Season 2
+→ Season 3
+
+الأفلام لا تحتاج إلى Seasons أو Episodes.
+
+## المرحلة 5 — Episodes
+
+أنشئ جدول Episodes مرتبطًا بالSeason.
+
+كل Episode يحتوي على:
+
+* id
+* seasonId
+* episodeNumber
+* title
+* description اختياري
+* releaseDate اختياري
+* createdAt
+* updatedAt
+
+مثال:
+
+Season 1
+
+* Episode 1
+* Episode 2
+* Episode 3
+
+لا تستخدم numeric `episodes` فقط كما هو موجود حاليًا.
+
+عدد الحلقات يجب أن يتم حسابه من الحلقات الموجودة فعليًا في database.
+
+## المرحلة 6 — Watch Links
+
+أنشئ نظامًا منفصلًا لروابط المشاهدة.
+
+Episode
+→ Watch Links
+
+كل Watch Link:
+
+* id
+* episodeId
+* name
+* url
+* sortOrder
+* createdAt
+* updatedAt
+
+مثال:
+
+Episode 1
+
+* Server 1
+* Server 2
+* Server 3
+
+أريد أن أستطيع إضافة عدد غير محدود من روابط المشاهدة.
+
+### مهم جدًا:
+
+لا تضف أي Quality system.
+
+لا أريد:
+
+* 360p
+* 480p
+* 720p
+* 1080p
+* 1440p
+* 4K
+* quality field
+
+الروابط تعتمد فقط على:
+
+* اسم السيرفر
+* الرابط
+
+## المرحلة 7 — API
+
+طوّر `artifacts/api-server` لإضافة API حقيقي لإدارة المحتوى.
+
+أضف endpoints منظمة للمصادقة والمحتوى.
+
+مثلًا:
+
+### Authentication
+
+POST `/api/auth/login`
+
+POST `/api/auth/logout`
+
+GET `/api/auth/me`
+
+### Series
+
+GET `/api/admin/series`
+
+GET `/api/admin/series/:id`
+
+POST `/api/admin/series`
+
+PATCH `/api/admin/series/:id`
+
+DELETE `/api/admin/series/:id`
+
+### Seasons
+
+GET `/api/admin/series/:id/seasons`
+
+POST `/api/admin/series/:id/seasons`
+
+PATCH `/api/admin/seasons/:id`
+
+DELETE `/api/admin/seasons/:id`
+
+### Episodes
+
+GET `/api/admin/seasons/:id/episodes`
+
+POST `/api/admin/seasons/:id/episodes`
+
+PATCH `/api/admin/episodes/:id`
+
+DELETE `/api/admin/episodes/:id`
+
+### Watch Links
+
+POST `/api/admin/episodes/:id/watch-links`
+
+PATCH `/api/admin/watch-links/:id`
+
+DELETE `/api/admin/watch-links/:id`
+
+استخدم conventions الموجودة في المشروع إذا كانت مختلفة، ولا تكرر APIs بلا داعٍ.
+
+لا تنشئ أي Download API.
+
+## المرحلة 8 — Authentication حقيقي
+
+الـAdmin الحالي غير محمي.
+
+أريد Authentication حقيقي.
+
+يجب أن:
+
+* `/admin` لا يكون متاحًا للإدارة بدون تسجيل دخول.
+* لا تعتمد الحماية على إخفاء الصفحة في frontend.
+* كل عمليات POST/PATCH/DELETE يجب أن تتحقق من صلاحيات المستخدم على server.
+* password يجب أن يكون hashed.
+* استخدم session/cookie آمن أو النظام المناسب للـstack الحالي.
+* لا تخزن password في localStorage.
+* لا ترسل passwordHash إلى frontend.
+* لا تعرض secrets.
+* لا تضع DATABASE_URL أو أي secret داخل frontend.
+
+إذا لم يوجد auth framework مناسب، استخدم أبسط حل آمن ومتوافق مع المشروع بدل إضافة نظام ضخم بلا داعٍ.
+
+## المرحلة 9 — Admin UI
+
+طوّر الـAdmin الحالي بدل حذفه.
+
+حافظ على نفس الـlayout والأسلوب الموجود حاليًا قدر الإمكان.
+
+أريد أن يصبح الـAdmin تقريبًا:
+
+### Dashboard
+
+* إحصائيات المحتوى
+* آخر الإضافات
+
+### Series
+
+* جميع المسلسلات
+* إضافة مسلسل
+* تعديل مسلسل
+* حذف مسلسل
+
+### Movies
+
+* جميع الأفلام
+* إضافة فيلم
+* تعديل فيلم
+* حذف فيلم
+
+### Seasons
+
+* يتم الوصول إليها من صفحة المسلسل
+
+### Episodes
+
+* يتم الوصول إليها من الموسم
+
+### Genres
+
+* إدارة التصنيفات إذا كان ذلك مناسبًا
+
+### Settings
+
+* الإعدادات الآمنة فقط
+
+## المرحلة 10 — Add Series Form
+
+عند الضغط على:
+
+"إضافة مسلسل"
+
+أريد Form كامل يحتوي على:
+
+* الاسم العربي
+* الاسم الإنجليزي
+* الاسم الأصلي
+* Slug
+* الوصف
+* النوع
+* الدولة
+* السنة
+* الحالة
+* التصنيفات
+* التقييم
+* اللغة
+* المخرج
+* الممثلون
+* Poster URL / upload حسب نظام الصور الموجود
+* Backdrop URL / upload حسب نظام الصور الموجود
+* Trailer URL
+
+Type:
+
+* مسلسل
+* فيلم
+
+Status:
+
+* قريبا
+* تبث حاليا
+* مكتملة
+
+يجب أن تكون واجهة الـAdmin بالعربية وRTL إذا كان الـAdmin الحالي كذلك.
+
+## المرحلة 11 — Manage Seasons
+
+داخل صفحة المسلسل:
+
+أريد قسم:
+
+"المواسم"
+
+مع:
+
+* إضافة موسم
+
+مثال:
+
+Season 1
+عدد الحلقات: 16
+
+Season 2
+عدد الحلقات: 12
+
+كل موسم يحتوي على:
+
+* تعديل
+* حذف
+* إدارة الحلقات
+
+عدد الحلقات يجب أن يتم حسابه تلقائيًا من Episodes الموجودة في database.
+
+## المرحلة 12 — Manage Episodes
+
+داخل الموسم أريد:
+
+* إضافة حلقة
+
+Form:
+
+* رقم الحلقة
+* عنوان الحلقة
+* الوصف
+* تاريخ الإصدار
+
+ثم قسم:
+
+### روابط المشاهدة
+
+* إضافة رابط
+
+Fields:
+
+* Name
+* URL
+
+مثال:
+
+Server 1
+https://example...
+
+Server 2
+https://example...
+
+Server 3
+https://example...
+
+أستطيع إضافة عدد غير محدود من روابط المشاهدة.
+
+لا يوجد أي قسم للتحميل.
+
+## المرحلة 13 — Public Website
+
+هذه نقطة أساسية جدًا.
+
+الموقع العام حاليًا يستخدم:
+
+`src/lib/data.ts`
+
+ويحتوي على static titles array.
+
+بعد بناء الـdatabase:
+
+حوّل الموقع تدريجيًا ليقرأ المحتوى من الـAPI/database بدل static mock data.
+
+لكن:
+
+**لا تحذف `data.ts` مباشرة.**
+
+افهم أولًا أين يستخدم.
+
+ثم انقل الصفحات واحدة تلو الأخرى إلى مصدر البيانات الحقيقي.
+
+المطلوب في النهاية:
+
+Database
+↓
+API
+↓
+Public Website
+
+وليس:
+
+Admin
+↓
+localStorage
+
+## المرحلة 14 — صفحات الدراما
+
+يجب أن تصبح هذه الصفحات ديناميكية:
+
+`/series/upcoming`
+
+`/series/airing`
+
+`/series/completed`
+
+ويتم تحديد النتائج من status في database.
+
+مثال:
+
+status = upcoming
+
+يظهر في:
+
+"الدراما القادمة"
+
+status = airing
+
+يظهر في:
+
+"الدراما التي تبث حاليا"
+
+status = completed
+
+يظهر في:
+
+"الدراما المنتهية مؤخرا"
+
+لا أريد إدخال نفس المسلسل يدويًا في كل صفحة.
+
+## المرحلة 15 — Filters
+
+اربط الـfilters الحالية بالـdatabase.
+
+يجب أن تعمل:
+
+* التصنيف / الدولة
+* الحالة
+* النوع / Genre
+* السنة
+
+والفلترة يجب أن تكون حقيقية من البيانات الموجودة.
+
+لا تستخدم قائمة static إذا كان من الممكن توليد الخيارات من database.
+
+## المرحلة 16 — Series Details
+
+صفحة المسلسل يجب أن تقرأ بيانات المسلسل من database.
+
+يجب أن تعرض:
+
+* Poster
+* Title
+* Original title
+* Description
+* Country
+* Year
+* Status
+* Genres
+* Rating
+* Cast
+* Director
+* Seasons
+
+ثم:
+
+Season 1
+→ Episode 1
+→ Episode 2
+→ Episode 3
+
+## المرحلة 17 — Watch Page
+
+صفحة مشاهدة الحلقة يجب أن تستخدم روابط الحلقة الحقيقية من database.
+
+لا تستخدم `trailer` كبديل للحلقة.
+
+لا تولّد روابط وهمية اعتمادًا على عدد الحلقات.
+
+إذا كانت الحلقة تحتوي:
+
+Server 1
+Server 2
+Server 3
+
+اعرضها للمستخدم كخيارات مشاهدة.
+
+إذا لم يوجد رابط، اعرض حالة مناسبة بدل رابط وهمي.
+
+لا تعرض أي Download button أو Download section.
+
+## المرحلة 18 — Migration للبيانات الحالية
+
+المشروع لديه بيانات حالية في:
+
+`artifacts/asian-screen/src/lib/data.ts`
+
+لا تحذفها.
+
+أنشئ migration/seed strategy مناسبة لنقل البيانات الحالية إلى database.
+
+حاول الحفاظ على:
+
+* العناوين
+* الوصف
+* السنة
+* التقييم
+* poster
+* backdrop
+* trailer
+* type
+* seasons/episodes information
+
+لكن لا تخترع روابط مشاهدة حقيقية غير موجودة.
+
+إذا كانت البيانات القديمة لا تحتوي على معلومات كافية لإنشاء Episodes حقيقية، أنشئ البيانات الأساسية فقط واترك Watch Links فارغة حتى تتم إضافتها من الـAdmin.
+
+لا تنشئ أي Download Links أثناء الـmigration.
+
+## المرحلة 19 — Dashboard Statistics
+
+الإحصائيات الحالية يجب أن تصبح مبنية على database.
+
+اعرض:
+
+* إجمالي المحتوى
+* إجمالي المسلسلات
+* إجمالي الأفلام
+* إجمالي المواسم
+* إجمالي الحلقات
+* إجمالي التصنيفات
+* عدد القادمة
+* عدد التي تبث حاليًا
+* عدد المكتملة
+
+لا تحسب هذه من localStorage.
+
+## المرحلة 20 — Search داخل Admin
+
+أضف بحثًا في قائمة المحتوى:
+
+* البحث بالاسم العربي
+* البحث بالاسم الإنجليزي
+* البحث بالاسم الأصلي
+
+وأضف filters مناسبة:
+
+* Type
+* Status
+* Country
+* Year
+
+## المرحلة 21 — Delete Safety
+
+قبل حذف:
+
+* Series
+* Season
+* Episode
+* Watch Link
+
+اعرض confirmation واضح.
+
+عند حذف Series، تعامل مع العلاقات المرتبطة بها بطريقة صحيحة.
+
+مثلاً:
+
+Series
+→ Seasons
+→ Episodes
+→ Watch Links
+
+يجب ألا تبقى orphan records.
+
+استخدم foreign keys/cascade behavior المناسب إذا كان آمنًا.
+
+## المرحلة 22 — Validation
+
+أضف validation للـforms.
+
+مثلًا:
+
+* title مطلوب
+* type مطلوب
+* status مطلوب
+* URL يجب أن يكون URL صالحًا
+* season number رقم صحيح
+* episode number رقم صحيح
+* year رقم منطقي
+* rating ضمن النطاق المناسب
+
+اعرض رسائل خطأ واضحة بالعربية.
+
+## المرحلة 23 — Error & Loading States
+
+كل صفحات الـAdmin يجب أن تحتوي على:
+
+* Loading state
+* Error state
+* Empty state
+* Success feedback
+
+مثال:
+"تمت إضافة المسلسل بنجاح"
+
+"حدث خطأ أثناء حفظ الحلقة"
+
+## المرحلة 24 — Responsive
+
+اجعل الـAdmin يعمل جيدًا على:
+
+* Desktop
+* Tablet
+* Mobile
+
+مع الحفاظ على تصميم الـAdmin الحالي.
+
+## المرحلة 25 — Site Settings
+
+إذا كان من السهل دمجها مع النظام الحالي، أضف إعدادات آمنة فقط.
+
+مثل:
+
+* اسم الموقع
+* وصف الموقع
+* Footer text
+* Logo URL
+* Favicon URL
+* SEO title
+* SEO description
+
+لكن لا تضف:
+
+* Code editor
+* arbitrary JavaScript
+* arbitrary server-side code
+* shell commands
+
+## المرحلة 26 — لا تستخدم localStorage للمحتوى
+
+بعد اكتمال database integration:
+
+لا تستخدم:
+`localStorage`
+
+لتخزين:
+
+* Series
+* Movies
+* Seasons
+* Episodes
+* Watch Links
+
+يمكن استخدام localStorage لأشياء UI غير حساسة إذا كان هناك حاجة، مثل preference بسيطة، ولكن ليس كمصدر البيانات الأساسي.
+
+## المرحلة 27 — مهم جدًا: لا تكسر التصميم العام
+
+الموقع العام تم تصميمه مسبقًا.
+
+لا أريد منك إعادة تصميمه أثناء بناء الـAdmin.
+
+احتفظ بـ:
+
+* Header
+* Navigation
+* Homepage
+* Cards
+* Carousels
+* صفحات المحتوى
+* ألوان الموقع
+* Typography
+* RTL
+* Responsive behavior
+
+عدّل فقط ما يلزم لكي تستقبل البيانات الحقيقية من database.
+
+## المرحلة 28 — Testing
+
+بعد التنفيذ اختبر السيناريو كاملًا:
+
+### Admin
+
+1. افتح `/admin`.
+2. تأكد أن المستخدم غير المسجل لا يستطيع إدارة المحتوى.
+3. سجل دخول Admin.
+4. أضف مسلسل.
+5. حدد:
+
+   * Type = Series
+   * Status = Upcoming
+   * Country = Korea
+   * Year = 2026
+6. أضف poster.
+7. أضف Genre.
+8. احفظ.
+
+### Season
+
+9. افتح المسلسل.
+10. أضف Season 1.
+
+### Episode
+
+11. أضف Episode 1.
+12. أضف Server 1.
+13. أضف Server 2.
+14. احفظ.
+
+### Public Website
+
+15. افتح الموقع العام.
+16. تأكد أن المسلسل يظهر.
+17. افتح صفحة المسلسل.
+18. تأكد أن Season 1 يظهر.
+19. تأكد أن Episode 1 يظهر.
+20. افتح الحلقة.
+21. تأكد أن Server 1 وServer 2 يظهران.
+
+### Status
+
+22. غيّر Status من Upcoming إلى Airing.
+
+23. تأكد أنه انتقل إلى `/series/airing`.
+
+24. غيّر Status إلى Completed.
+
+25. تأكد أنه انتقل إلى `/series/completed`.
+
+### Edit
+
+26. عدّل اسم المسلسل.
+27. تأكد أن التغيير يظهر في الموقع العام.
+
+### Delete
+
+28. احذف الحلقة.
+29. تأكد أنها اختفت من الموقع.
+30. احذف المسلسل.
+31. تأكد أن العلاقات المرتبطة به تم التعامل معها بشكل صحيح.
+
+# طريقة التنفيذ
+
+نفذ المشروع على مراحل وليس دفعة واحدة.
+
+## Phase 1
+
+Database schema + migrations
+
+## Phase 2
+
+Authentication + Admin authorization
+
+## Phase 3
+
+Admin API
+
+## Phase 4
+
+Admin UI
+
+## Phase 5
+
+Series / Movies
+
+## Phase 6
+
+Seasons / Episodes
+
+## Phase 7
+
+Watch Links
+
+## Phase 8
+
+Public website database integration
+
+## Phase 9
+
+Migration/seed للبيانات الحالية
+
+## Phase 10
+
+Testing + bug fixing
+
+بعد كل Phase تأكد أن المشروع ما زال يعمل قبل الانتقال للمرحلة التالية.
+
+# قاعدة أخيرة ومهمة جدًا
+
+**لا تفترض بنية جديدة إذا كانت البنية الحالية تستطيع استيعاب المطلوب.**
+
+افحص المشروع أولًا.
+
+أعد استخدام:
+
+* existing components
+* existing routes
+* existing styles
+* existing API structure
+* existing database package
+* existing types
+
+ثم أضف فقط ما هو ناقص.
+
+الهدف النهائي:
+
+Replit Editor
+→ تطوير الكود
+
+Admin `/admin`
+→ إدارة المحتوى
+
+PostgreSQL
+→ التخزين الدائم
+
+API
+→ الربط بينهما
+
+Public Website
+→ يعرض البيانات الحقيقية من Database
+
+وأريد في نهاية التنفيذ أن يكون النظام فعليًا وليس Prototype، بحيث أستطيع بعد Publish الدخول إلى `/admin` وإضافة مسلسل وموسم وحلقات وروابط مشاهدة، وتظهر التغييرات للمستخدمين على الموقع بدون تعديل `data.ts` يدويًا.
+
+**الموقع مخصص للمشاهدة فقط. لا يوجد أي نظام تحميل للحلقات.**
