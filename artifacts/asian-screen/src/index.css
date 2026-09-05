@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @plugin "@tailwindcss/typography";
@@ -65,8 +65,8 @@
   --sidebar-accent: 225 17% 13%;
   --sidebar-accent-foreground: 38 28% 91%;
   --sidebar-ring: 2 76% 56%;
-  --app-font-sans: 'DM Sans', sans-serif;
-  --app-font-serif: 'Playfair Display', Georgia, serif;
+  --app-font-sans: 'IBM Plex Sans Arabic', Tahoma, sans-serif;
+  --app-font-serif: 'Noto Kufi Arabic', Tahoma, sans-serif;
   --app-font-mono: 'DM Mono', monospace;
   --radius: 0.65rem;
   --shadow-color: 2 76% 56%;
@@ -79,11 +79,12 @@
   html { background: hsl(var(--background)); scroll-behavior: smooth; }
   body { @apply font-sans antialiased bg-background text-foreground; margin: 0; }
   button, a, input, select { -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 3px; }
   ::selection { background: hsl(var(--primary) / .3); color: hsl(var(--foreground)); }
 }
 
 @layer utilities {
-  .font-display { font-family: var(--app-font-serif); }
+  .font-display { font-family: var(--app-font-serif); font-weight: 600; }
   .font-mono-ui { font-family: var(--app-font-mono); }
   .text-balance { text-wrap: balance; }
   .cinema-grid { background-image: linear-gradient(hsl(225 16% 20% / .18) 1px, transparent 1px), linear-gradient(90deg, hsl(225 16% 20% / .18) 1px, transparent 1px); background-size: 32px 32px; }
@@ -99,6 +100,9 @@
   .stagger > *:nth-child(5) { animation-delay: .24s; }
   .scrollbar-hidden { scrollbar-width: none; }
   .scrollbar-hidden::-webkit-scrollbar { display: none; }
+  .featured-poster { position: relative; height: 184px; width: 124px; }
+  .featured-poster-active { width: 136px; }
+  .episode-panel { border: 1px solid hsl(var(--border)); background: hsl(var(--card) / .7); padding: 1.25rem; }
 }
 
 @keyframes page-enter { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
@@ -106,4 +110,14 @@
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+
+@media (min-width: 640px) {
+  .featured-poster { height: 220px; width: 148px; }
+  .featured-poster-active { width: 164px; }
+}
+
+@media (min-width: 1024px) {
+  .featured-poster { height: 250px; width: 166px; }
+  .featured-poster-active { width: 188px; }
 }

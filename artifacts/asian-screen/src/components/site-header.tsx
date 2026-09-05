@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ChevronDown, ChevronLeft, House, Menu, Search, UserRound, X } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { titles } from '@/lib/data';
@@ -29,7 +29,7 @@ function BrandMark() {
   );
 }
 
-function HeaderLink({ href, children, active }: { href: string; children: React.ReactNode; active: boolean }) {
+function HeaderLink({ href, children, active }: { href: string; children: ReactNode; active: boolean }) {
   return (
     <Link
       href={href}
@@ -74,6 +74,17 @@ export default function SiteHeader() {
   }, [searchOpen]);
 
   useEffect(() => {
+    const closeMenus = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setDramaOpen(false);
+      setMobileOpen(false);
+      setMobileDramaOpen(false);
+    };
+    document.addEventListener('keydown', closeMenus);
+    return () => document.removeEventListener('keydown', closeMenus);
+  }, []);
+
+  useEffect(() => {
     setMobileOpen(false);
     setMobileDramaOpen(false);
     setDramaOpen(false);
@@ -92,7 +103,7 @@ export default function SiteHeader() {
   };
 
   return (
-    <header dir="ltr" className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur-xl">
+    <header dir="rtl" className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur-xl">
       <div className="mx-auto flex h-[72px] max-w-[1500px] items-center gap-3 px-4 sm:gap-5 sm:px-5 lg:px-10">
         <button
           type="button"
@@ -112,7 +123,7 @@ export default function SiteHeader() {
             <House size={15} />
             الرئيسية
           </HeaderLink>
-          <HeaderLink href="/series" active={isCurrentRoute(location, '/series')}>
+           <HeaderLink href="/episodes" active={isCurrentRoute(location, '/episodes')}>
             الحلقات الجديدة
           </HeaderLink>
           <div className="relative" onMouseEnter={() => setDramaOpen(true)} onMouseLeave={() => setDramaOpen(false)}>
@@ -123,7 +134,7 @@ export default function SiteHeader() {
               aria-expanded={dramaOpen}
               onClick={() => setDramaOpen((open) => !open)}
               className={`relative flex items-center gap-1.5 whitespace-nowrap px-2 py-3 text-[12px] font-medium transition ${
-                isCurrentRoute(location, '/series') || location.startsWith('/country/') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+               isCurrentRoute(location, '/series') || location.startsWith('/country/') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               الدراما الآسيوية
@@ -151,7 +162,7 @@ export default function SiteHeader() {
             الأفلام الآسيوية
           </HeaderLink>
           <HeaderLink href="/genres" active={isCurrentRoute(location, '/genres')}>
-            برامج الترفيه
+            التصنيفات
           </HeaderLink>
         </nav>
 
@@ -172,7 +183,7 @@ export default function SiteHeader() {
             className="flex items-center gap-2 rounded-sm border border-border px-2.5 py-2 text-muted-foreground transition hover:border-primary/60 hover:text-foreground"
           >
             <UserRound size={16} />
-            <span className="hidden text-xs sm:block">My Shelf</span>
+            <span className="hidden text-xs sm:block">قائمتي</span>
           </Link>
         </div>
       </div>
@@ -198,7 +209,7 @@ export default function SiteHeader() {
                 <House size={16} />
                 الرئيسية
               </Link>
-              <Link href="/series" onClick={closeMobile} data-testid="link-mobile-new-episodes" className={`flex items-center border-b border-border/60 px-3 py-4 text-sm ${isCurrentRoute(location, '/series') ? 'text-primary' : 'text-muted-foreground'}`}>
+               <Link href="/episodes" onClick={closeMobile} data-testid="link-mobile-new-episodes" className={`flex items-center border-b border-border/60 px-3 py-4 text-sm ${isCurrentRoute(location, '/episodes') ? 'text-primary' : 'text-muted-foreground'}`}>
                 الحلقات الجديدة
               </Link>
               <div className="border-b border-border/60">
@@ -221,7 +232,7 @@ export default function SiteHeader() {
                 الأفلام الآسيوية
               </Link>
               <Link href="/genres" onClick={closeMobile} data-testid="link-mobile-entertainment-ar" className={`flex items-center border-b border-border/60 px-3 py-4 text-sm ${isCurrentRoute(location, '/genres') ? 'text-primary' : 'text-muted-foreground'}`}>
-                برامج الترفيه
+                التصنيفات
               </Link>
             </nav>
           </aside>
