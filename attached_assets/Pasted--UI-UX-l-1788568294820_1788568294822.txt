@@ -1,0 +1,942 @@
+أريد منك إعادة تصميم وتطوير **الموقع الحالي الموجود في هذا المشروع** بالكامل من ناحية الـUI/UX والـlayout والـresponsive behavior، بحيث يصبح قريبًا جدًا من **الهيكل وتجربة الاستخدام التي سأصفها أدناه**.
+
+مهم جدًا:
+
+* لا تنسخ كود الموقع المرجعي.
+* لا تنسخ HTML/CSS/JS منه حرفيًا.
+* لا تستخدم شعاره أو اسمه أو صوره أو روابطه أو أي Assets خاصة به.
+* لا تستخدم دوميناته أو URLs الخاصة به.
+* لا تغيّر اسم موقعي أو الـbranding الخاص بي.
+* استخدم الـlogo والاسم والمحتوى الموجودين حاليًا في مشروعي.
+* إذا كان هناك بيانات أو Components موجودة أصلًا في المشروع، حافظ عليها ولا تحذفها بدون سبب.
+* المطلوب هو **إعادة بناء التصميم والـUX من الصفر** اعتمادًا على الـstructure والسلوك الموضحين هنا.
+* لا تجعل الموقع نسخة حرفية؛ اجعله تصميمًا أصليًا لموقعي مع نفس الفكرة العامة، توزيع العناصر، الإحساس البصري، وسلوك المكونات.
+
+---
+
+# 1. قبل تعديل أي شيء
+
+أولًا افحص المشروع الحالي بالكامل.
+
+حدد:
+
+* Framework المستخدم.
+* Entry points.
+* Routing.
+* Components.
+* Pages.
+* Database/data models إن وجدت.
+* طريقة جلب المسلسلات والأفلام.
+* طريقة عرض الصور.
+* نظام الـauthentication إن وجد.
+* الـCSS/Tailwind/styling system المستخدم.
+* أي API موجود.
+* أي admin/dashboard موجود.
+
+لا تعيد بناء المشروع من الصفر إذا لم يكن ذلك ضروريًا.
+
+**حافظ على الـbackend والـdata الموجودة حاليًا قدر الإمكان.**
+
+قم بتعديل الـfrontend/UI والـcomponents المطلوبة بدل حذف الوظائف الحالية.
+
+---
+
+# 2. اللغة والاتجاه
+
+الموقع عربي بشكل أساسي.
+
+يجب أن يكون:
+
+```text
+direction: rtl
+lang: ar
+```
+
+ويجب أن يكون الـRTL حقيقيًا في:
+
+* Header
+* Navigation
+* Dropdowns
+* Search
+* Cards
+* Carousels
+* Buttons
+* Pagination
+* Mobile menu
+* Footer
+* جميع الصفحات.
+
+استخدم خط عربي حديث وواضح ومناسب لموقع مسلسلات.
+
+---
+
+# 3. التصميم العام
+
+أريد موقعًا يبدو كموقع احترافي متخصص في:
+
+* المسلسلات الكورية
+* المسلسلات الصينية
+* المسلسلات التايوانية
+* المسلسلات اليابانية
+* المسلسلات التايلاندية
+* المسلسلات الفلبينية
+* الأفلام الآسيوية
+* البرامج الترفيهية
+
+التصميم يجب أن يكون:
+
+* نظيف.
+* مرتب.
+* حديث.
+* سريع.
+* Responsive.
+* مناسب للـdesktop والـtablet والـmobile.
+* التركيز الأساسي على Posters والمحتوى المرئي.
+
+لا تستخدم Anime كتصنيف رئيسي، ولا تضف محتوى Anime إلا إذا كان موجودًا أصلًا في بيانات موقعي.
+
+---
+
+# 4. HEADER
+
+أعد بناء الـHeader ليكون من أهم عناصر الموقع.
+
+الـHeader يجب أن يحتوي على:
+
+## Logo
+
+في الجهة المناسبة للـRTL، استخدم:
+
+**شعار موقعي الحالي واسمي الحالي فقط.**
+
+لا تستخدم شعار الموقع المرجعي.
+
+الـlogo يجب أن يكون واضحًا ومتوازنًا مع حجم الـnavigation.
+
+---
+
+# 5. Desktop Navigation
+
+في الـdesktop أريد Navigation واضحًا ومضغوطًا أفقيًا.
+
+الفكرة العامة:
+
+```text
+[Logo]       الرئيسية
+             الحلقات الجديدة
+             الدراما الآسيوية ▼
+             الأفلام الآسيوية
+             برامج الترفيه
+                                      🔍
+```
+
+اجعل العناصر موزعة بشكل متوازن.
+
+### الرئيسية
+
+تحتوي على icon للـHome.
+
+### الحلقات الجديدة
+
+رابط مباشر لصفحة أحدث الحلقات.
+
+### الدراما الآسيوية
+
+Dropdown menu.
+
+يحتوي على:
+
+* قائمة الدراما
+* الدراما القادمة
+* الدراما التي تبث حاليًا
+* الدراما المنتهية مؤخرًا
+* الدراما المعاد رفعها / المتجددة
+* الدراما الكورية
+* الدراما اليابانية
+* الدراما الصينية والتايوانية
+* الدراما التايلاندية
+* الدراما الفلبينية
+
+اجعل الـdropdown:
+
+* RTL.
+* مرتب.
+* واضح.
+* يظهر عند hover على desktop.
+* قابل للاستخدام بالـclick أيضًا.
+* لا يخرج خارج الشاشة.
+
+---
+
+# 6. Mobile Navigation
+
+على الشاشات الصغيرة لا تحاول ضغط الـdesktop navigation.
+
+أنشئ Mobile Navigation مستقل.
+
+استخدم:
+
+* Hamburger button.
+* Slide-in side menu.
+* RTL.
+* Overlay خلف القائمة.
+* زر إغلاق واضح.
+* animation ناعم.
+
+القائمة تحتوي على نفس التصنيفات السابقة.
+
+يجب أن تكون تجربة الـmobile ممتازة وليس مجرد نسخة مصغرة من desktop.
+
+---
+
+# 7. Search
+
+في الـHeader يوجد Search icon.
+
+عند الضغط عليه:
+
+افتح Search Overlay / Popup أنيق.
+
+يحتوي على:
+
+```text
+البحث في [اسم موقعي]
+
+[ ابدأ البحث...                         🔍 ]
+```
+
+المطلوب:
+
+* animation ناعم.
+* background overlay.
+* إغلاق عند الضغط خارج الـpopup.
+* إغلاق بزر X.
+* دعم Enter للبحث.
+* البحث في المسلسلات والأفلام الموجودة في الموقع.
+* دعم RTL.
+* نتائج البحث تكون مرتبة وواضحة.
+* لا تستخدم رابط البحث الخاص بالموقع المرجعي.
+
+إذا كان المشروع يحتوي أصلًا على Search functionality، اربط التصميم الجديد بها بدل بناء نظام بحث منفصل.
+
+---
+
+# 8. STICKY HEADER
+
+اجعل الـHeader Sticky.
+
+عند النزول في الصفحة:
+
+* يبقى الـHeader ظاهرًا.
+* لا يغطي المحتوى.
+* استخدم shadow خفيف.
+* animation بسيطة.
+* لا تجعل الـHeader ضخمًا.
+
+على mobile يجب أن يعمل الـsticky header أيضًا.
+
+---
+
+# 9. HERO / FEATURED CAROUSEL
+
+أسفل الـHeader مباشرة أريد Hero Carousel كبير للأعمال المميزة.
+
+الفكرة الأساسية:
+
+```text
+┌─────────────────────────────────────────────┐
+│                                             │
+│       Poster   Poster   Poster   Poster      │
+│                                             │
+│           ‹                    ›             │
+│              •  •  •                        │
+└─────────────────────────────────────────────┘
+```
+
+خصائصه:
+
+* Horizontal carousel.
+* RTL friendly.
+* Posters كبيرة وواضحة.
+* عنوان العمل يظهر بطريقة أنيقة.
+* arrows يمين ويسار.
+* pagination dots.
+* autoplay.
+* transition smooth.
+* pause عند hover إن كان مناسبًا.
+* touch/swipe على mobile.
+* لا يحدث layout shift.
+* lazy-load للصور.
+
+في التصميم المرجعي كان carousel يعرض تقريبًا عناصر بعرض 336px وارتفاع منطقة يقارب 468px، لكن لا تستخدم هذه الأرقام بشكل جامد؛ اجعلها Responsive حسب حجم الشاشة.
+
+### Desktop
+
+اعرض عدة Posters في نفس الوقت.
+
+### Tablet
+
+اعرض عددًا أقل.
+
+### Mobile
+
+اعرض Poster أو Posterين بشكل مناسب بدون قص الصورة.
+
+---
+
+# 10. MAIN CONTENT
+
+بعد الـHero أنشئ Main Content container بعرض مناسب ومركزي.
+
+لا تجعل المحتوى ملتصقًا بحواف الشاشة.
+
+استخدم spacing واضح بين الأقسام.
+
+---
+
+# 11. قسم الحلقات الجديدة
+
+أريد قسمين بجانب بعضهما على desktop:
+
+### القسم الأول
+
+```text
+الحلقات الكورية الجديدة
+```
+
+### القسم الثاني
+
+```text
+الحلقات الآسيوية الجديدة
+```
+
+على mobile يصبحان stacked فوق بعض.
+
+كل قسم يحتوي على:
+
+* عنوان القسم.
+* رابط "شاهد الكل".
+* عنصر Featured صغير.
+* عدة عناصر إضافية.
+* thumbnail صغيرة.
+* عنوان الحلقة.
+* icon صغير فوق الصورة.
+* hover effect.
+
+الـthumbnail في التصميم المرجعي كانت تقريبًا 80×80، لكن اجعل الحجم Responsive.
+
+مثال للهيكل:
+
+```text
+┌──────────────────────────┐
+│ الحلقات الكورية الجديدة  │
+│                          │
+│ [IMG]  Somebody          │
+│        الحلقة 09         │
+│                          │
+│ [IMG]  مسلسل آخر         │
+│ [IMG]  مسلسل آخر         │
+│ [IMG]  مسلسل آخر         │
+│                          │
+│        شاهد الكل         │
+└──────────────────────────┘
+```
+
+---
+
+# 12. Carousel Component موحد
+
+أنشئ Component قابل لإعادة الاستخدام مثل:
+
+```text
+DramaCarousel
+```
+
+أو ما يناسب architecture الحالي.
+
+لا تكرر نفس كود الـcarousel لكل قسم.
+
+يجب أن يدعم:
+
+* title
+* items
+* image
+* Arabic title
+* English title
+* link
+* arrows
+* pagination
+* autoplay
+* responsive item count
+* RTL
+* loading state
+* empty state.
+
+---
+
+# 13. Poster Carousel Sections
+
+بعد قسم الحلقات الجديدة، أنشئ عدة أقسام Full Width.
+
+كل قسم عبارة عن:
+
+```text
+عنوان القسم                         شاهد الكل
+
+[Poster] [Poster] [Poster] [Poster] [Poster] ...
+   ↑
+  title
+```
+
+كل Poster:
+
+* Aspect ratio قريب من 376×525.
+* Border radius بسيط.
+* object-fit: cover.
+* title تحت الصورة.
+* overlay icon عند hover.
+* transition ناعم.
+* clickable بالكامل.
+* lazy loading.
+
+في التصميم المرجعي كان عرض عنصر الـcarousel حوالي 209px على desktop، لكن يجب أن يكون Responsive.
+
+---
+
+# 14. الأقسام المطلوبة
+
+إذا كانت البيانات الحالية في الموقع تدعم هذه الأقسام، استخدمها.
+
+الأقسام المطلوبة بالترتيب المنطقي:
+
+### 1
+
+الأعمال المضافة مؤخرًا
+
+### 2
+
+الأفلام الآسيوية
+
+### 3
+
+الدراما القادمة
+
+### 4
+
+الدراما المنتهية مؤخرًا
+
+### 5
+
+دراما تم إعادة رفعها / متجددة
+
+### 6
+
+الدراما الكورية
+
+### 7
+
+الدراما الصينية والتايوانية
+
+### 8
+
+الدراما اليابانية
+
+### 9
+
+الدراما التايلاندية
+
+### 10
+
+الدراما الفلبينية
+
+إذا كان موقع المشروع الحالي يستخدم أسماء مختلفة، لا تحذف البيانات الحالية؛ اربطها بالـsections المناسبة.
+
+---
+
+# 15. Section Header
+
+كل Section يجب أن يكون له Header موحد.
+
+مثل:
+
+```text
+الدراما الكورية                              شاهد الكل
+────────────────────────────────────────────────────
+```
+
+أو التصميم البصري الأنسب حسب الـtheme.
+
+اجعل:
+
+* العنوان واضح.
+* font weight مناسب.
+* spacing ثابت.
+* "شاهد الكل" واضح وقابل للنقر.
+
+لا تجعل كل section يبدو منفصلًا عن الآخر بشكل عشوائي.
+
+---
+
+# 16. Movie / Drama Cards
+
+كل card يجب أن يحتوي على:
+
+```text
+┌───────────────┐
+│               │
+│    POSTER     │
+│               │
+│       ▶       │
+└───────────────┘
+عنوان المسلسل
+English Title
+```
+
+لكن لا تجعل النص طويلًا يكسر التصميم.
+
+استخدم:
+
+* line clamp.
+* fixed/consistent card height.
+* tooltip أو title attribute عند الحاجة.
+
+---
+
+# 17. Hover Effects
+
+عند hover على Poster:
+
+* zoom بسيط جدًا.
+* overlay.
+* يظهر play/arrow icon.
+* transition سريع وناعم.
+
+لا تبالغ في animations.
+
+---
+
+# 18. صفحة الحلقات الجديدة
+
+أعد تصميم صفحة:
+
+```text
+الحلقات الجديدة
+```
+
+بحيث تحتوي على:
+
+* Page title.
+* Grid responsive.
+* Episode cards.
+* Poster.
+* عنوان الحلقة.
+* رقم الحلقة إن كان متوفرًا.
+* نوع الدراما.
+* pagination.
+
+الـgrid يجب أن يتغير حسب الشاشة.
+
+Desktop:
+
+عدة أعمدة.
+
+Tablet:
+
+عدد أقل.
+
+Mobile:
+
+عمودين أو حسب المساحة، بدون جعل البطاقات صغيرة جدًا.
+
+---
+
+# 19. Pagination
+
+استخدم pagination حديثة.
+
+مثل:
+
+```text
+‹ السابق   1   2   3   4   5   ...   الأخير ›
+```
+
+مع:
+
+* Active state.
+* hover state.
+* disabled state.
+* RTL.
+* mobile friendly.
+
+لا تستخدم شكل WordPress القديم حرفيًا.
+
+---
+
+# 20. Footer
+
+Footer بسيط ونظيف.
+
+يحتوي على:
+
+* اسم موقعي الحالي.
+* Copyright ديناميكي.
+* روابط الموقع المهمة إذا كانت موجودة.
+* لا تستخدم أي branding من الموقع المرجعي.
+
+مثال:
+
+```text
+[MY WEBSITE NAME]
+
+جميع الحقوق محفوظة © 2026
+```
+
+السنة يجب أن تكون dynamic.
+
+---
+
+# 21. Back to Top
+
+أضف زر:
+
+```text
+↑
+```
+
+يظهر بعد النزول في الصفحة.
+
+عند الضغط:
+
+smooth scroll إلى الأعلى.
+
+يجب أن يكون:
+
+* صغير.
+* واضح.
+* لا يغطي المحتوى.
+* مناسب للـmobile.
+
+---
+
+# 22. Responsive Design
+
+هذا مهم جدًا.
+
+اختبر التصميم على الأقل على:
+
+```text
+1920px
+1440px
+1280px
+1024px
+768px
+600px
+480px
+390px
+360px
+```
+
+لا أريد:
+
+* horizontal overflow.
+* عناصر تخرج من الشاشة.
+* نصوص تتداخل.
+* صور مشوهة.
+* carousels مكسورة.
+* menu خارج viewport.
+
+---
+
+# 23. Performance
+
+حافظ على الأداء.
+
+استخدم:
+
+* lazy loading للصور.
+* responsive images إذا كان النظام يدعمها.
+* CSS transitions بدل animations ثقيلة.
+* لا تحمل مكتبات ضخمة بدون داعٍ.
+* لا تضف Owl Carousel أو jQuery فقط لأن الموقع المرجعي يستخدمها.
+
+إذا كان المشروع يستخدم React/Next/Vite أو framework حديث، استخدم مكتبة carousel حديثة أو implementation مناسب للـframework.
+
+**لا تقلد تقنية الموقع القديم؛ قلد النتيجة والـUX فقط.**
+
+---
+
+# 24. Accessibility
+
+أضف:
+
+* alt text.
+* aria-label للأزرار.
+* keyboard navigation.
+* focus states.
+* زر إغلاق للـmobile menu.
+* دعم Escape لإغلاق:
+
+  * Search popup
+  * Mobile menu
+  * Dropdown عند الحاجة.
+
+---
+
+# 25. الصور والبيانات
+
+ممنوع استخدام صور الموقع المرجعي أو روابط الصور الموجودة في Inspect HTML.
+
+استخدم:
+
+1. الصور الموجودة حاليًا في مشروعي.
+2. أو الصور الموجودة في database/API الخاص بالمشروع.
+3. أو placeholders محلية إذا لم توجد صور.
+
+لا تستخدم:
+
+```text
+aradramatv.cc
+aradramatv.com
+wp-content
+logo-v3
+أي URL من الموقع المرجعي
+```
+
+ولا تنسخ أي asset من الموقع المرجعي.
+
+---
+
+# 26. Branding
+
+**مهم جدًا:**
+
+الـreference الذي أعطيتك إياه هو فقط Reference للـUI/UX.
+
+اسم الموقع، الشعار، الألوان الخاصة بالـbranding، domain، المحتوى، وروابط الموقع يجب أن تبقى خاصة بموقعي.
+
+لا تستبدل اسم موقعي بـ:
+
+```text
+Aradrama
+AradramaTv
+```
+
+ولا تضع أي نص يشير إلى أن الموقع هو Aradrama.
+
+---
+
+# 27. Architecture
+
+أنشئ Components reusable بدل تكرار الكود.
+
+مثلًا إن كان مناسبًا للـframework:
+
+```text
+Header
+DesktopNavigation
+MobileNavigation
+SearchOverlay
+HeroCarousel
+SectionHeader
+EpisodeList
+EpisodeCard
+PosterCard
+DramaCarousel
+CategorySection
+Pagination
+Footer
+BackToTop
+```
+
+واستخدم data-driven rendering.
+
+مثال منطقي:
+
+```js
+const sections = [
+  {
+    title: "...",
+    items: [...]
+  }
+]
+```
+
+بدل كتابة نفس markup عدة مرات.
+
+---
+
+# 28. Existing Functionality
+
+**لا تكسر أي functionality موجودة حاليًا.**
+
+بعد التعديل تأكد من:
+
+* Navigation يعمل.
+* Search يعمل.
+* Cards تفتح الصفحات الصحيحة.
+* Categories تعمل.
+* Episode pages تعمل.
+* Movie pages تعمل.
+* Login/Register إن وجد يعمل.
+* Admin functionality لا تتأثر.
+* API requests لا تتأثر.
+* Database لا تتأثر.
+
+إذا وجدت مشكلة في implementation الحالي، أصلحها فقط إذا كانت مرتبطة بالتعديل أو تمنع التصميم من العمل.
+
+---
+
+# 29. Reference Structure Summary
+
+الـInspect HTML الذي أعطيتك إياه يوضح بشكل أساسي هذا الـflow:
+
+```text
+STICKY HEADER
+│
+├── Logo
+├── Desktop Navigation
+│   ├── Home
+│   ├── New Episodes
+│   ├── Asian Drama ▼
+│   │   ├── Drama List
+│   │   ├── Upcoming
+│   │   ├── Ongoing
+│   │   ├── Recently Completed
+│   │   ├── Re-uploaded
+│   │   ├── Korean
+│   │   ├── Japanese
+│   │   ├── Chinese/Taiwanese
+│   │   ├── Thai
+│   │   └── Filipino
+│   ├── Asian Movies
+│   └── Entertainment
+│
+└── Search
+        │
+        ▼
+FEATURED HERO CAROUSEL
+        │
+        ▼
+NEW EPISODES
+├── Korean New Episodes
+└── Asian New Episodes
+        │
+        ▼
+RECENTLY ADDED CAROUSEL
+        │
+        ▼
+ASIAN MOVIES CAROUSEL
+        │
+        ▼
+UPCOMING DRAMAS CAROUSEL
+        │
+        ▼
+RECENTLY COMPLETED CAROUSEL
+        │
+        ▼
+RE-UPLOADED DRAMAS CAROUSEL
+        │
+        ▼
+KOREAN DRAMAS CAROUSEL
+        │
+        ▼
+CHINESE / TAIWANESE CAROUSEL
+        │
+        ▼
+JAPANESE DRAMAS CAROUSEL
+        │
+        ▼
+THAI DRAMAS CAROUSEL
+        │
+        ▼
+FILIPINO DRAMAS CAROUSEL
+        │
+        ▼
+FOOTER
+```
+
+هذه هي **البنية المطلوبة**، وليس المطلوب نسخ الـHTML نفسه.
+
+---
+
+# 30. أهم شيء: لا تعمل Mockup منفصل
+
+لا أريد صفحة تجريبية منفصلة عن الموقع.
+
+أريدك أن:
+
+1. تفحص الموقع الحالي.
+2. تستخدم الـcomponents والبيانات الحالية.
+3. تطبق التصميم الجديد عليها.
+4. تربط الـcarousels بالبيانات الحقيقية.
+5. تربط الأقسام بالـroutes الحقيقية.
+6. تحافظ على الـfunctionality الحالية.
+
+---
+
+# 31. التنفيذ
+
+ابدأ أولًا بتحليل المشروع الحالي.
+
+بعد ذلك نفذ التعديل على مراحل:
+
+### المرحلة 1
+
+Header + Navigation + Mobile Menu + Search.
+
+### المرحلة 2
+
+Hero Carousel.
+
+### المرحلة 3
+
+New Episodes blocks.
+
+### المرحلة 4
+
+Reusable Poster Carousel.
+
+### المرحلة 5
+
+باقي الأقسام.
+
+### المرحلة 6
+
+Footer + Back to Top.
+
+### المرحلة 7
+
+Responsive + Performance + Accessibility.
+
+### المرحلة 8
+
+اختبار جميع الـroutes والوظائف.
+
+---
+
+# 32. Final Quality Check
+
+بعد التنفيذ، لا تكتفِ بأن الصفحة "تشتغل".
+
+راجع بصريًا:
+
+* spacing
+* alignment
+* card sizes
+* poster ratios
+* typography
+* header height
+* dropdown positioning
+* carousel arrows
+* pagination dots
+* mobile menu
+* search overlay
+* responsive breakpoints
+* RTL
+* footer spacing.
+
+إذا ظهر أي شيء غير متناسق، أصلحه.
+
+**الهدف النهائي:**
+
+موقع عربي احترافي للمسلسلات والأفلام الآسيوية، مستوحى من الـstructure والـUX الموجودين في الـreference HTML الذي أعطيتك إياه، لكن مبني من الصفر وبـbranding ومحتوى وassets خاصة بموقعي.
