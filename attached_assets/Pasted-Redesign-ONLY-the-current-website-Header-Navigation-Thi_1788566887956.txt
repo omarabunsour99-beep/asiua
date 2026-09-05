@@ -1,0 +1,218 @@
+Redesign ONLY the current website Header / Navigation.
+
+This is a TEST implementation. Do not redesign or modify other parts of the website.
+
+First inspect the existing project structure and current Header implementation. Then replace/update only the Header-related components and styles needed for this redesign.
+
+IMPORTANT:
+
+* Keep the existing website name, logo, domain, routes, content, and branding.
+* Do NOT use the reference website's name anywhere.
+* Do NOT use the reference website's code, logo, images, URLs, or copyrighted assets.
+* Recreate the structure and UX from scratch.
+* Do NOT modify the homepage content, cards, footer, database, API, authentication, or unrelated components.
+* Do NOT remove existing functionality.
+* If the project already has reusable UI components, reuse them where appropriate.
+
+REFERENCE DESIGN GOAL:
+
+Create a modern Arabic RTL header inspired by the structure and navigation experience of the reference HTML I provided.
+
+HEADER LAYOUT:
+
+Desktop:
+
+* Clean centered header/container.
+* Website logo on the left.
+* Main navigation in the center.
+* Search icon on the right.
+* Dark cinematic/premium appearance.
+* Good horizontal spacing.
+* Header should feel polished and similar in overall navigation experience to the reference, but clearly remain an original design.
+
+Navigation items:
+
+1. Home icon + "الرئيسية"
+2. "الحلقات الجديدة"
+3. "الدراما الآسيوية" + dropdown arrow
+4. "الأفلام الآسيوية"
+5. "برامج الترفيه"
+
+DRAMA DROPDOWN:
+
+Hovering over "الدراما الآسيوية" should open a clean dropdown menu containing:
+
+* قائمة الدراما
+* الدراما القادمة
+* الدراما التي تبث حاليا
+* الدراما المنتهية مؤخرا
+* الدراما الكورية
+* الدراما اليابانية
+* الدراما الصينية والتايوانية
+* الدراما التايلاندية
+* الدراما الفلبينية
+
+Do NOT add Anime.
+
+Dropdown requirements:
+
+* Smooth fade/slide animation.
+* Proper RTL positioning.
+* Comfortable item spacing.
+* Subtle hover effect.
+* Clean dark cinematic styling.
+* Dropdown should close naturally when the pointer leaves.
+* Avoid excessive animation.
+
+SEARCH:
+
+Add a search icon to the header.
+
+When clicked:
+
+* Open a centered search modal/overlay.
+* Add a dark transparent backdrop.
+* Modal title:
+  "البحث في [CURRENT WEBSITE NAME]"
+* Input placeholder:
+  "ابدأ البحث..."
+* Search button with an appropriate search icon.
+* Smooth opening/closing animation.
+* ESC closes the modal.
+* Clicking outside the modal closes it.
+
+Use the site's existing search functionality if one already exists. Do not create a fake search system if a working search already exists.
+
+MOBILE:
+
+On mobile:
+
+* Hide desktop navigation.
+* Show hamburger menu.
+* Keep logo compact.
+* Keep search icon visible.
+* Hamburger opens a right-to-left side/canvas menu.
+* Add dark overlay.
+* Add close button.
+* Menu must be vertically scrollable.
+* Menu must use proper RTL alignment.
+
+Mobile menu:
+
+الرئيسية
+
+الحلقات الجديدة
+
+الدراما الآسيوية
+
+* قائمة الدراما
+* الدراما القادمة
+* الدراما التي تبث حاليا
+* الدراما المنتهية مؤخرا
+* الدراما الكورية
+* الدراما اليابانية
+* الدراما الصينية والتايوانية
+* الدراما التايلاندية
+* الدراما الفلبينية
+
+الأفلام الآسيوية
+
+برامج الترفيه
+
+The "الدراما الآسيوية" mobile item should be expandable/collapsible.
+
+RTL:
+
+Make sure the header and navigation work correctly with:
+
+dir="rtl"
+
+Arabic text, icons, dropdowns, search modal, and mobile navigation must all have correct RTL positioning.
+
+VISUAL DESIGN:
+
+Use a premium dark cinematic theme suitable for an Asian movies/dramas website.
+
+Style should be:
+
+* Modern
+* Minimal
+* Clean
+* Professional
+* Cinematic
+* Premium
+
+Use:
+
+* Subtle borders
+* Soft shadows
+* Slight gradients
+* Smooth hover transitions
+* Good typography
+* Comfortable spacing
+
+Do not make it visually identical to the reference. Use the reference only for structural and UX inspiration.
+
+ACTIVE STATE:
+
+Detect the current route/page and visually highlight the corresponding navigation item.
+
+For example:
+"الحلقات الجديدة"
+
+should have a subtle active state such as an accent color, background, or underline.
+
+RESPONSIVE:
+
+Desktop:
+Logo + navigation + search.
+
+Tablet:
+Reduce spacing and font sizes where necessary.
+
+Mobile:
+Logo + hamburger + search.
+
+Make sure the desktop navigation never overflows.
+
+COMPONENT STRUCTURE:
+
+If appropriate for the existing architecture, organize the Header into reusable components such as:
+
+* Header
+* DesktopNavigation
+* MobileNavigation
+* DramaDropdown
+* SearchModal
+* NavItem
+
+Do not unnecessarily create dozens of components. Keep the implementation simple and maintainable.
+
+IMPORTANT TESTING:
+
+After implementing the Header:
+
+1. Check desktop layout.
+2. Check tablet layout.
+3. Check mobile layout.
+4. Test the drama dropdown.
+5. Test mobile hamburger.
+6. Test mobile drama submenu.
+7. Test search modal.
+8. Test ESC to close search.
+9. Test clicking outside the search modal.
+10. Test active navigation state.
+11. Test RTL alignment.
+12. Check for console errors.
+13. Check for broken existing routes.
+14. Make sure the rest of the website remains unchanged.
+
+FINAL REQUIREMENT:
+
+This is ONLY a Header redesign test.
+
+Do not redesign the rest of the website yet.
+
+Do not change the existing homepage sections or content.
+
+Once the Header is implemented, leave the rest of the application exactly as it was.

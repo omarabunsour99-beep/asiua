@@ -1,0 +1,235 @@
+I want you to redesign the current website header/navigation to closely reproduce the STRUCTURE, UX, spacing, and behavior of the reference Asian drama website header shown in the HTML inspection I provided.
+
+IMPORTANT:
+
+* Do NOT copy the original site's code, logo, images, branding, URLs, or copyrighted assets.
+* Recreate the design and functionality from scratch with our own implementation.
+* Keep MY website name, logo, domain, content, and branding.
+* Do not use the name "Aradrama" anywhere.
+* Do not link to aradramatv.cc or any other reference-site URL.
+
+## HEADER STRUCTURE
+
+Create a centered, clean website header with three main areas:
+
+1. Logo area
+2. Main navigation
+3. Search button
+
+### LOGO
+
+Place my website logo on the left side on desktop.
+
+Use the existing logo/brand of MY website.
+
+If no logo exists yet, create a clean text-based logo using:
+
+[MY WEBSITE NAME]
+
+The logo should be approximately 200px wide and 30–40px high.
+
+On mobile, keep the logo compact and centered/appropriately positioned.
+
+## DESKTOP NAVIGATION
+
+Create a horizontal navigation bar similar in structure to the reference.
+
+Navigation:
+
+* Home icon + "الرئيسية"
+* "الحلقات الجديدة"
+* "الدراما الآسيوية" with dropdown arrow
+* "الأفلام الآسيوية"
+* "برامج الترفيه"
+
+The "الدراما الآسيوية" item must have a dropdown mega-style menu containing:
+
+* قائمة الدراما
+* الدراما القادمة
+* الدراما التي تبث حاليا
+* الدراما المنتهية مؤخرا
+* الدراما الكورية
+* الدراما اليابانية
+* الدراما الصينية والتايوانية
+* الدراما التايلاندية
+* الدراما الفلبينية
+
+Do NOT include Anime.
+
+## DROPDOWN BEHAVIOR
+
+When hovering over "الدراما الآسيوية":
+
+* Show a clean dropdown panel.
+* Smooth fade/slide animation.
+* Keep the dropdown aligned with the navigation.
+* Use a dark/white theme consistent with the website.
+* Each menu item should have comfortable padding.
+* Add a subtle hover effect.
+* Dropdown should disappear smoothly when the mouse leaves.
+
+On mobile, convert this into an expandable/collapsible menu.
+
+## SEARCH
+
+On the right side of the navigation, add a search icon.
+
+When clicked:
+
+Open a centered search popup/overlay.
+
+The popup should contain:
+
+"البحث في [MY WEBSITE NAME]"
+
+Large search input:
+
+"ابدأ البحث..."
+
+Search button with search icon.
+
+The background behind the popup should have a subtle dark transparent overlay.
+
+The popup should animate smoothly when opening and closing.
+
+Pressing ESC should close the search popup.
+
+Clicking outside the popup should close it.
+
+## MOBILE NAVIGATION
+
+On mobile, use a hamburger menu.
+
+When clicked, open a side/canvas navigation menu.
+
+The mobile menu should contain:
+
+الرئيسية
+الحلقات الجديدة
+الدراما الآسيوية
+
+* قائمة الدراما
+* الدراما القادمة
+* الدراما التي تبث حاليا
+* الدراما المنتهية مؤخرا
+* الدراما الكورية
+* الدراما اليابانية
+* الدراما الصينية والتايوانية
+* الدراما التايلاندية
+* الدراما الفلبينية
+  الأفلام الآسيوية
+  برامج الترفيه
+
+The mobile navigation should have:
+
+* Smooth slide-in animation
+* Close button
+* Dark overlay
+* Scrollable menu
+* Proper RTL layout
+
+## RTL
+
+The entire website must use:
+
+dir="rtl"
+
+Arabic navigation should feel natural and properly aligned.
+
+Make sure:
+
+* Arabic text alignment is correct.
+* Dropdown positioning works correctly in RTL.
+* Icons are positioned correctly.
+* Search popup is RTL.
+* Mobile menu is RTL.
+
+## VISUAL STYLE
+
+Use the reference website only as inspiration for the layout.
+
+Create a cleaner and more modern version.
+
+Style:
+
+* Dark cinematic theme
+* Premium Asian drama aesthetic
+* Minimalistic
+* Professional
+* Smooth
+* Responsive
+
+Use subtle:
+
+* Shadows
+* Borders
+* Gradients
+* Hover transitions
+
+Avoid excessive animations.
+
+## RESPONSIVE DESIGN
+
+Desktop:
+Logo + horizontal navigation + search.
+
+Tablet:
+Reduce spacing and font sizes appropriately.
+
+Mobile:
+Logo + hamburger + search icon.
+
+The desktop navigation must NOT overflow.
+
+## ACTIVE PAGE
+
+The currently selected page should have a clear active state.
+
+For example:
+
+الحلقات الجديدة
+
+should visually indicate that it is the current page.
+
+Use a subtle underline, background, or accent color.
+
+## COMPONENT ARCHITECTURE
+
+Create reusable components:
+
+Header
+Logo
+DesktopNavigation
+MobileNavigation
+DramaDropdown
+SearchPopup
+MobileMenu
+NavItem
+
+Keep the components clean and reusable.
+
+## IMPORTANT
+
+Do not simply paste the HTML I provided.
+
+Rebuild the interface using the project's existing React/TypeScript/Tailwind architecture.
+
+First inspect the existing project and integrate the new header into it without breaking existing pages.
+
+Do not replace the existing application unnecessarily.
+
+After implementation:
+
+* Test desktop
+* Test tablet
+* Test mobile
+* Test dropdown
+* Test search popup
+* Test hamburger menu
+* Test RTL
+* Test keyboard ESC
+* Test active navigation states
+* Make sure there are no console errors
+* Make sure there are no broken links
+
+The final header should feel very close to the reference site's navigation experience while remaining an original implementation with MY website's branding.

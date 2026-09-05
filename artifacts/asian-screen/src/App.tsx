@@ -3,17 +3,12 @@ import { Link, Route, Switch, Router as WouterRouter, useLocation, useParams } f
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { ArrowLeft, Bookmark, Check, ChevronDown, ChevronRight, Clock3, Film, Heart, Menu, Pencil, Play, Plus, Search, Settings, SlidersHorizontal, Sparkles, Trash2, UserRound, X } from 'lucide-react';
+import { ArrowLeft, Bookmark, Check, ChevronDown, ChevronRight, Clock3, Film, Heart, Pencil, Play, Plus, Search, Settings, SlidersHorizontal, Sparkles, Trash2, UserRound, X } from 'lucide-react';
 import { countries, genres, getTitle, titles, type Country, type Title, type TitleType } from '@/lib/data';
 import { readStored, toggleStored, useStored } from '@/lib/store';
+import SiteHeader from '@/components/site-header';
 
 type Sort = 'popularity' | 'rating' | 'newest' | 'alpha';
-const navItems = [
-  { href: '/', label: 'Home' },
-  { href: '/movies', label: 'Movies' },
-  { href: '/series', label: 'Dramas' },
-  { href: '/genres', label: 'Genres' },
-];
 
 function useIds(key: string) {
   const [ids, setIds] = useState<string[]>(() => readStored(key, []));
@@ -49,37 +44,11 @@ function Toast({ message, onClose }: { message: string; onClose: () => void }) {
   return <div data-testid="toast-message" className="fixed right-4 top-20 z-40 flex items-center gap-3 border border-primary/40 bg-card/95 px-4 py-3 text-sm shadow-2xl shadow-black/30 backdrop-blur-md page-enter"><Sparkles size={15} className="text-accent" /><span>{message}</span><button aria-label="Dismiss notification" data-testid="button-dismiss-toast" onClick={onClose}><X size={15} /></button></div>;
 }
 
-function Logo() {
-  return <Link href="/" data-testid="link-logo" className="flex items-center gap-3 group">
-    <span className="grid h-9 w-9 place-items-center border border-primary/60 bg-primary font-display text-lg font-bold text-primary-foreground shadow-lg shadow-primary/20">AS</span>
-    <span className="hidden text-[13px] font-semibold tracking-[.24em] text-foreground sm:block">ASIAN SCREEN</span>
-  </Link>;
-}
-
 function Shell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const [, setLocation] = useLocation();
   const isActive = (href: string) => href === '/' ? location === '/' : location.startsWith(href);
-  const suggestions = search.trim() ? titles.filter(t => `${t.title} ${t.originalTitle}`.toLowerCase().includes(search.toLowerCase())).slice(0, 4) : [];
-  const submitSearch = () => { if (search.trim()) setLocation(`/search?q=${encodeURIComponent(search.trim())}`); };
   return <div className="film-grain min-h-[100dvh] bg-background">
-    <header className="sticky top-0 z-30 border-b border-border/70 bg-background/88 backdrop-blur-xl">
-      <div className="mx-auto flex h-[72px] max-w-[1500px] items-center gap-5 px-5 lg:px-10">
-        <button data-testid="button-mobile-menu" className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground lg:hidden" onClick={() => setMobileOpen(!mobileOpen)}>{mobileOpen ? <X size={20} /> : <Menu size={20} />}</button>
-        <Logo />
-        <nav className="ml-7 hidden items-center gap-7 lg:flex">{navItems.map(item => <Link key={item.href} href={item.href} data-testid={`link-nav-${item.label.toLowerCase()}`} className={`text-[11px] font-medium uppercase tracking-[.2em] transition-colors ${isActive(item.href) ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>{item.label}</Link>)}</nav>
-        <div className="relative ml-auto hidden w-full max-w-[300px] md:block">
-          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input data-testid="input-global-search" value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && submitSearch()} placeholder="Search titles, actors..." className="h-9 w-full rounded-sm border border-border bg-secondary/55 pl-9 pr-3 text-sm outline-none transition focus:border-primary/70" />
-          {suggestions.length > 0 && <div className="absolute left-0 right-0 top-11 overflow-hidden border border-border bg-card shadow-xl">{suggestions.map(item => <Link key={item.id} href={`/${item.type}/${item.id}`} data-testid={`link-suggestion-${item.id}`} className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-secondary"><img src={item.poster} alt="" className="h-9 w-7 object-cover" /><span>{item.title}</span><span className="ml-auto text-[10px] text-muted-foreground">{item.country}</span></Link>)}</div>}
-        </div>
-        <Link href="/search" data-testid="link-search-mobile" className="rounded-md p-2 text-muted-foreground hover:text-foreground md:hidden"><Search size={19} /></Link>
-        <Link href="/profile" data-testid="link-profile" className="flex items-center gap-2 rounded-sm border border-border px-2.5 py-2 text-muted-foreground transition hover:border-primary/60 hover:text-foreground"><UserRound size={16} /><span className="hidden text-xs sm:block">My Shelf</span></Link>
-      </div>
-      {mobileOpen && <div className="border-t border-border bg-background px-5 py-4 lg:hidden"><nav className="flex flex-col gap-1">{navItems.map(item => <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} data-testid={`link-mobile-${item.label.toLowerCase()}`} className={`px-3 py-3 text-xs font-medium uppercase tracking-[.18em] ${isActive(item.href) ? 'bg-secondary text-foreground' : 'text-muted-foreground'}`}>{item.label}</Link>)}<Link href="/watchlist" data-testid="link-mobile-watchlist" className="px-3 py-3 text-xs font-medium uppercase tracking-[.18em] text-muted-foreground">Watchlist</Link></nav></div>}
-    </header>
+    <SiteHeader />
     <main className="mx-auto max-w-[1500px] px-5 pb-28 pt-7 lg:px-10 lg:pb-12">{children}</main>
     <nav className="fixed bottom-0 left-0 right-0 z-30 grid grid-cols-5 border-t border-border bg-sidebar/96 py-2 backdrop-blur-xl lg:hidden">{[{href:'/',label:'Home',icon:Sparkles},{href:'/movies',label:'Explore',icon:Film},{href:'/search',label:'Search',icon:Search},{href:'/watchlist',label:'Shelf',icon:Bookmark},{href:'/profile',label:'Profile',icon:UserRound}].map(item => { const Icon = item.icon; return <Link key={item.href} href={item.href} data-testid={`link-bottom-${item.label.toLowerCase()}`} className={`flex flex-col items-center gap-1 text-[9px] uppercase tracking-widest ${isActive(item.href) ? 'text-primary' : 'text-muted-foreground'}`}><Icon size={18} /><span>{item.label}</span></Link>; })}</nav>
   </div>;
