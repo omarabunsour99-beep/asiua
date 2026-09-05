@@ -3,7 +3,7 @@ export type Country = 'Korea' | 'China' | 'Japan' | 'Thailand' | 'Taiwan';
 export type Title = {
   id: string; title: string; originalTitle: string; type: TitleType; country: Country;
   year: number; rating: number; genres: string[]; description: string; poster: string;
-  backdrop: string; trailer: string; language: string; status: 'Ongoing' | 'Completed';
+  backdrop: string; trailer: string; language: string; status: 'Upcoming' | 'Ongoing' | 'Completed';
   seasons: number; episodes: number; cast: string[]; director: string; popularity: number;
   hd?: string;
 };
@@ -75,7 +75,8 @@ const records: Array<[string,string,TitleType,Country,number,number,string[],str
 
 export const titles: Title[] = records.map((r, i) => {
   const [title, originalTitle, type, country, year, rating, genres, description, language, director, cast] = r;
-  return { id: `as-${String(i + 1).padStart(3,'0')}`, title, originalTitle, type, country, year, rating, genres, description, language, director, cast: cast.split('|'), status: type === 'series' && i % 4 === 0 ? 'Ongoing' : 'Completed', seasons: type === 'series' ? (i % 3) + 1 : 0, episodes: type === 'series' ? 8 + (i % 8) : 1, popularity: 95 - ((i * 7) % 58), poster: poster(title, i), backdrop: poster(title, i, true), trailer: 'https://storage.googleapis.com/coverr-main/mp4/Mt_Baker.mp4', hd: i % 3 === 0 ? '4K' : 'HD' };
+  const status = type !== 'series' ? 'Completed' : i % 5 === 0 ? 'Upcoming' : i % 4 === 0 ? 'Ongoing' : 'Completed';
+  return { id: `as-${String(i + 1).padStart(3,'0')}`, title, originalTitle, type, country, year, rating, genres, description, language, director, cast: cast.split('|'), status, seasons: type === 'series' ? (i % 3) + 1 : 0, episodes: type === 'series' ? 8 + (i % 8) : 1, popularity: 95 - ((i * 7) % 58), poster: poster(title, i), backdrop: poster(title, i, true), trailer: 'https://storage.googleapis.com/coverr-main/mp4/Mt_Baker.mp4', hd: i % 3 === 0 ? '4K' : 'HD' };
 });
 export const countries: Country[] = ['Korea','China','Japan','Thailand','Taiwan'];
 export const genres = Array.from(new Set(titles.flatMap(t => t.genres))).sort();

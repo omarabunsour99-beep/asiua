@@ -5,6 +5,7 @@ import { titles, type Title } from '@/lib/data';
 import { readStored, toggleStored } from '@/lib/store';
 
 type ToastHandler = (message: string) => void;
+export const statusLabel = (status: Title['status']) => status === 'Upcoming' ? 'قريباً' : status === 'Ongoing' ? 'يبث حالياً' : 'مكتمل';
 
 function useWatchlist() {
   const [ids, setIds] = useState<string[]>(() => readStored('asian-watchlist', []));
@@ -102,7 +103,7 @@ export function FeaturedCarousel({ items }: { items: Title[] }) {
           <h1 data-testid="text-featured-title" className="font-display text-4xl leading-[1.08] text-foreground sm:text-6xl lg:text-7xl">{current.title}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{current.originalTitle}</p>
           <p className="mt-5 max-w-lg text-sm leading-7 text-muted-foreground">{current.description}</p>
-          <div className="mt-5 flex flex-wrap gap-3 text-[11px] text-muted-foreground"><span className="text-accent">★ {current.rating}</span><span>{current.year}</span><span>{current.country}</span><span>{current.status === 'Ongoing' ? 'مستمر' : 'مكتمل'}</span></div>
+          <div className="mt-5 flex flex-wrap gap-3 text-[11px] text-muted-foreground"><span className="text-accent">★ {current.rating}</span><span>{current.year}</span><span>{current.country}</span><span>{statusLabel(current.status)}</span></div>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link href={`/watch/${current.id}`} data-testid="link-hero-watch" className="inline-flex items-center gap-2 rounded-sm bg-primary px-5 py-3 text-xs font-bold text-primary-foreground transition hover:bg-primary/90"><Play size={15} fill="currentColor" /> شاهد الآن</Link>
             <Link href={`/${current.type}/${current.id}`} data-testid="link-hero-details" className="inline-flex items-center gap-2 rounded-sm border border-border bg-background/35 px-5 py-3 text-xs font-bold text-foreground backdrop-blur-sm transition hover:border-primary"><span>التفاصيل</span><ChevronLeft size={15} /></Link>
@@ -141,7 +142,7 @@ export function EpisodePanels({ korean, asian }: { korean: Title[]; asian: Title
         <div className="flex items-center justify-between gap-3"><div><p className="font-mono-ui text-[10px] tracking-[.18em] text-primary">إضافة حديثة</p><h2 className="mt-1 font-display text-2xl">{title}</h2></div><Link href="/series" data-testid={`link-episodes-all-${testId}`} className="text-[11px] font-semibold text-muted-foreground hover:text-primary">شاهد الكل</Link></div>
         <Link href={`/watch/${featured.id}?episode=1`} data-testid={`link-featured-episode-${featured.id}`} className="mt-5 flex gap-4 border border-border/70 bg-secondary/40 p-3 transition hover:border-primary/70">
           <img src={featured.poster} alt={`ملصق ${featured.title}`} loading="lazy" className="h-28 w-20 object-cover" />
-          <span className="min-w-0 self-center"><span className="block text-[10px] text-accent">الحلقة 01 · {featured.status === 'Ongoing' ? 'مستمر' : 'مكتمل'}</span><strong className="mt-2 block truncate text-sm">{featured.title}</strong><span className="mt-1 block truncate text-[11px] text-muted-foreground">{featured.originalTitle}</span><span className="mt-3 inline-flex items-center gap-1 text-[10px] font-bold text-primary"><Play size={11} fill="currentColor" /> تشغيل الحلقة</span></span>
+          <span className="min-w-0 self-center"><span className="block text-[10px] text-accent">الحلقة 01 · {statusLabel(featured.status)}</span><strong className="mt-2 block truncate text-sm">{featured.title}</strong><span className="mt-1 block truncate text-[11px] text-muted-foreground">{featured.originalTitle}</span><span className="mt-3 inline-flex items-center gap-1 text-[10px] font-bold text-primary"><Play size={11} fill="currentColor" /> تشغيل الحلقة</span></span>
         </Link>
         <div className="mt-3 space-y-1">
           {rest.slice(0, 4).map(item => <Link key={item.id} href={`/watch/${item.id}?episode=1`} data-testid={`row-new-episode-${item.id}`} className="flex items-center gap-3 border-b border-border/60 px-2 py-3 text-xs transition hover:bg-secondary/70"><span className="font-mono-ui text-primary">01</span><span className="min-w-0 flex-1 truncate">{item.title}</span><span className="text-[10px] text-muted-foreground">{item.country}</span><Play size={12} className="text-muted-foreground" /></Link>)}
@@ -152,4 +153,4 @@ export function EpisodePanels({ korean, asian }: { korean: Title[]; asian: Title
   return <div className="mt-12 grid gap-5 lg:grid-cols-2">{panel('الحلقات الكورية الجديدة', korean, 'panel-new-korean')}{panel('حلقات آسيوية جديدة', asian, 'panel-new-asian')}</div>;
 }
 
-export const supportedSeries = titles.filter(item => item.type === 'series');
+export const supportedSeries = titles.filter(item => item.type === 'series' && item.status !== 'Upcoming');
