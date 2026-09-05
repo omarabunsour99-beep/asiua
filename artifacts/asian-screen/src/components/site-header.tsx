@@ -5,9 +5,9 @@ import { titles } from '@/lib/data';
 
 const dramaLinks = [
   { href: '/series', label: 'قائمة الدراما' },
-  { href: '/series', label: 'الدراما القادمة' },
-  { href: '/series', label: 'الدراما التي تبث حاليا' },
-  { href: '/series', label: 'الدراما المنتهية مؤخرا' },
+  { href: '/series/upcoming', label: 'الدراما القادمة' },
+  { href: '/series/airing', label: 'الدراما التي تبث حاليا' },
+  { href: '/series/completed', label: 'الدراما المنتهية مؤخرا' },
   { href: '/country/korea', label: 'الدراما الكورية' },
   { href: '/country/japan', label: 'الدراما اليابانية' },
   { href: '/series', label: 'الدراما الصينية والتايوانية' },
