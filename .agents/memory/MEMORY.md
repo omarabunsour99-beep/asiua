@@ -1,0 +1,1 @@
+- [Admin bootstrap](admin-bootstrap.md) — the database-backed admin area stays unavailable until deployment credentials are configured.

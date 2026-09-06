@@ -3,6 +3,7 @@ import { Check, ChevronLeft, ChevronRight, RotateCcw, Search, SlidersHorizontal 
 import { useLocation } from 'wouter';
 import { countries, genres, titles, type Title } from '@/lib/data';
 import { PosterCard } from '@/components/media-components';
+import { toLegacyTitle, usePublicTitles } from '@/lib/api';
 
 export type DramaStatus = 'Upcoming' | 'Ongoing' | 'Completed';
 
@@ -187,6 +188,8 @@ export function DramaListingPage({ status, title, description }: { status: Drama
   const [toast, setToast] = useState('');
   const [loading, setLoading] = useState(true);
   const years = useMemo(() => Array.from(new Set(titles.filter((item) => item.type === 'series').map((item) => item.year))).sort((a, b) => b - a), []);
+  const apiStatus = status === 'Upcoming' ? 'upcoming' : status === 'Ongoing' ? 'airing' : 'completed';
+  const remote = usePublicTitles({ type: 'series', status: apiStatus, page: 1, pageSize: 100 });
 
   useEffect(() => {
     setDraft({ country: applied.country, genre: applied.genre, year: applied.year });
@@ -201,12 +204,13 @@ export function DramaListingPage({ status, title, description }: { status: Drama
     return () => window.clearTimeout(timer);
   }, [toast]);
 
-  const filtered = useMemo(() => titles
+  const source = remote.items.length ? remote.items.map(toLegacyTitle) : titles;
+  const filtered = useMemo(() => source
     .filter((item) => item.type === 'series' && item.status === status)
     .filter((item) => !applied.country || item.country === applied.country)
     .filter((item) => !applied.genre || item.genres.includes(applied.genre))
     .filter((item) => !applied.year || String(item.year) === applied.year)
-    .sort((a, b) => b.year - a.year || b.popularity - a.popularity), [applied.country, applied.genre, applied.year, status]);
+    .sort((a, b) => b.year - a.year || b.popularity - a.popularity), [source, applied.country, applied.genre, applied.year, status]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const page = Math.min(applied.page, totalPages);
@@ -237,7 +241,7 @@ export function DramaListingPage({ status, title, description }: { status: Drama
         <span data-testid="text-drama-results-count">{filtered.length} عمل</span>
         <span className="inline-flex items-center gap-1.5 text-[11px]"><Check size={13} className="text-primary" /> {statusText(status)}</span>
       </div>
-      {loading ? <ListingSkeleton /> : visible.length ? <div data-testid="grid-drama-results" className="stagger mt-5 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">{visible.map((item) => <DramaCard key={item.id} item={item} onToast={setToast} />)}</div> : <EmptyResults onReset={resetFilters} />}
+       {loading || remote.loading ? <ListingSkeleton /> : visible.length ? <div data-testid="grid-drama-results" className="stagger mt-5 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">{visible.map((item) => <DramaCard key={item.id} item={item} onToast={setToast} />)}</div> : <EmptyResults onReset={resetFilters} />}
       {!loading && visible.length > 0 && <Pagination page={page} totalPages={totalPages} onChange={(nextPage) => updateUrl({ page: nextPage })} />}
       {toast && <div data-testid="drama-listing-toast" className="fixed right-4 top-20 z-40 border border-primary/40 bg-card/95 px-4 py-3 text-sm shadow-2xl shadow-black/30 backdrop-blur-md">{toast}</div>}
     </div>
