@@ -266,34 +266,36 @@ function getEmbedUrl(rawUrl: string) {
 }
 
 
-function Watch({ item }: { item: Title | undefined }) {
-  const { id } = useParams<{ id: string }>();
-  const [location, navigate] = useLocation();
+    function Watch({ item }: { item: Title | undefined }) {
+      const { id } = useParams<{ id: string }>();
+      const [location, navigate] = useLocation();
 
-  const [remoteDetail, setRemoteDetail] = useState<any>(null);
-  const [watchError, setWatchError] = useState(false);
+      const allRemote = usePublicTitles({ page: 1, pageSize: 100 });
 
-  const [selectedWatchLinkId, setSelectedWatchLinkId] =
-    useState<string | null>(null);
+      const [remoteDetail, setRemoteDetail] = useState<any>(null);
+      const [watchError, setWatchError] = useState(false);
 
-  const [progress, setProgress] = useStored<Record<string, number>>(
-    "asian-progress",
-    {}
-  );
+      const [selectedWatchLinkId, setSelectedWatchLinkId] =
+        useState<string | null>(null);
 
-  const [watchlist, toggleWatchlist] =
-    useIds("asian-watchlist");
+      const [progress, setProgress] = useStored<Record<string, number>>(
+        "asian-progress",
+        {}
+      );
 
-  const [season, setSeason] = useState(1);
+      const [watchlist, toggleWatchlist] =
+        useIds("asian-watchlist");
 
-  /*
-   * Read episode directly from the current URL.
-   * This makes /watch/id?episode=2 immediately represent episode 2.
-   */
-  const getEpisodeFromUrl = () => {
-    if (typeof window === "undefined") {
-      return 1;
-    }
+      const [season, setSeason] = useState(1);
+
+      /*
+       * Read episode directly from the current URL.
+       * This makes /watch/id?episode=2 immediately represent episode 2.
+       */
+      const getEpisodeFromUrl = () => {
+        if (typeof window === "undefined") {
+          return 1;
+        }
 
     const params = new URLSearchParams(window.location.search);
     const value = Number(params.get("episode"));
