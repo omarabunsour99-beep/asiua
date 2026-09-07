@@ -186,25 +186,108 @@ function Detail({ type }: { type: TitleType }) {
   return <Shell><Meta title={item.title} description={item.description} /><div className="page-enter"><section className="relative -mx-5 min-h-[510px] overflow-hidden border-b border-border lg:-mx-10"><img src={item.backdrop} alt="" className="absolute inset-0 h-full w-full object-cover opacity-50" /><div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/25" /><div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" /><div className="relative flex min-h-[510px] max-w-2xl flex-col justify-end px-6 pb-12 lg:px-16"><Link href={type==='movie'?'/movies':'/series'} data-testid="link-back-catalog" className="mb-auto mt-4 flex items-center gap-2 self-start text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground"><ArrowLeft size={14} /> Back to catalogue</Link><p className="font-mono-ui text-[10px] uppercase tracking-[.25em] text-primary">{item.country} / {item.type} / {item.year}</p><h1 data-testid="text-detail-title" className="mt-3 font-display text-5xl leading-none italic md:text-7xl">{item.title}</h1><p className="mt-2 text-sm italic text-muted-foreground">{item.originalTitle}</p><p className="mt-5 max-w-xl text-sm leading-7 text-muted-foreground">{item.description}</p><div className="mt-6 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground"><span className="text-accent">★ {item.rating}</span><span>{item.year}</span><span>{item.language}</span><span>{item.genres.join(' · ')}</span></div><div className="mt-7 flex flex-wrap gap-3"><Link href={`/watch/${item.id}`} data-testid="link-detail-watch" className="inline-flex items-center gap-2 rounded-sm bg-primary px-5 py-3 text-xs font-semibold uppercase tracking-widest text-primary-foreground"><Play size={15} fill="currentColor" /> Watch now</Link><Button onClick={toggle} variant="outline" testId="button-detail-watchlist">{saved ? <Check size={15} /> : <Plus size={15} />}{saved ? 'On shelf' : 'Add to shelf'}</Button><Button onClick={()=>{toggleFavorite(item.id); setToast(favorite ? 'Removed from favorites' : 'Saved as a favorite');}} variant="ghost" testId="button-detail-favorite"><Heart size={16} fill={favorite?'currentColor':'none'} /> Favorite</Button></div></div></section><div className="grid gap-10 py-10 md:grid-cols-[1fr_280px]"><div><div className="border-b border-border pb-8"><p className="font-mono-ui text-[10px] uppercase tracking-[.25em] text-accent">A closer look</p><p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground">{item.description} Every frame is a small act of attention, and every performance leaves a different trace after midnight.</p></div>{type==='series' && <div className="mt-8 border-b border-border pb-8"><div className="flex items-center justify-between"><h2 className="font-display text-2xl italic">Episodes</h2><span className="text-xs text-muted-foreground">{seasons.length} seasons · {item.episodes} episodes</span></div>{seasons.length ? seasons.map((season: any) => <div key={season.id} className="mt-4"><p className="mb-2 text-xs text-primary">{season.title || `Season ${season.seasonNumber}`}</p><div className="grid gap-2 sm:grid-cols-2">{season.episodes.map((episode: any) => <Link key={episode.id} href={`/watch/${item.id}?episode=${episode.episodeNumber}`} data-testid={`link-episode-${item.id}-${episode.episodeNumber}`} className="flex items-center gap-3 border border-border bg-secondary/40 px-3 py-3 text-sm transition hover:border-primary/60"><span className="font-mono-ui text-xs text-primary">{String(episode.episodeNumber).padStart(2,'0')}</span><span>{episode.title}</span><Play size={13} className="ml-auto text-muted-foreground" /></Link>)}</div></div>) : <p className="mt-4 text-sm text-muted-foreground">لا توجد مواسم أو حلقات بعد.</p>}</div>}</div><aside className="space-y-7"><div><p className="font-mono-ui text-[10px] uppercase tracking-[.25em] text-accent">Details</p><dl className="mt-4 space-y-3 text-sm"><div className="flex justify-between gap-4"><dt className="text-muted-foreground">Director</dt><dd className="text-right">{item.director}</dd></div><div className="flex justify-between gap-4"><dt className="text-muted-foreground">Cast</dt><dd className="max-w-[160px] text-right">{item.cast.join(', ')}</dd></div><div className="flex justify-between gap-4"><dt className="text-muted-foreground">Status</dt><dd className="text-accent">{statusLabel(item.status)}</dd></div></dl></div></aside></div><Row title="You might also like" items={similar} onToast={setToast} /></div>{toast && <Toast message={toast} onClose={()=>setToast('')} />}</Shell>;
 }
 
+function getEmbedUrl(rawUrl: string) {
+  const value = rawUrl.trim();
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    const host = url.hostname.toLowerCase();
+
+    // OK.ru: convert normal video pages to the official embed URL.
+    if (host === 'ok.ru' || host === 'www.ok.ru') {
+      const match = url.pathname.match(/\/video\/(?:embed\/)?(\d+)/);
+      if (match?.[1]) return `https://ok.ru/videoembed/${match[1]}`;
+    }
+
+    // YouTube: support normal watch links, short links and existing embed links.
+    if (host === 'youtube.com' || host === 'www.youtube.com' || host === 'm.youtube.com') {
+      if (url.pathname.startsWith('/embed/')) return value;
+      const videoId = url.searchParams.get('v');
+      if (videoId) return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
+    }
+    if (host === 'youtu.be') {
+      const videoId = url.pathname.replace(/^\//, '').split('/')[0];
+      if (videoId) return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
+    }
+
+    // Vimeo: convert normal video URLs to the player endpoint.
+    if (host === 'vimeo.com' || host === 'www.vimeo.com') {
+      const match = url.pathname.match(/\/(\d+)/);
+      if (match?.[1]) return `https://player.vimeo.com/video/${match[1]}`;
+    }
+
+    // Preserve explicit embed/player URLs and otherwise try the supplied URL
+    // as an iframe source. The remote host still decides whether embedding is allowed.
+    return value;
+  } catch {
+    return null;
+  }
+}
+
 function Watch({ item }: { item: Title | undefined }) {
   const { id } = useParams<{ id: string }>();
+  const [location] = useLocation();
   const [remoteDetail, setRemoteDetail] = useState<any>(null);
   const [watchError, setWatchError] = useState(false);
+  const [selectedWatchLinkId, setSelectedWatchLinkId] = useState<string | null>(null);
   const allRemote = usePublicTitles({ page: 1, pageSize: 100 });
   useEffect(() => { if (id) void getPublicTitle(id).then(value => { setRemoteDetail(value); setWatchError(false); }).catch(() => setWatchError(true)); }, [id]);
   const [progress, setProgress] = useStored<Record<string,number>>('asian-progress', {});
   const [watchlist, toggleWatchlist] = useIds('asian-watchlist');
   const [season, setSeason] = useState(1);
   const current = remoteDetail ? toLegacyTitle(remoteDetail) : undefined;
+  const episodeNumber = Number(new URLSearchParams(location.split('?')[1] || '').get('episode') || 1);
+  const activeEpisode = remoteDetail?.seasons?.find((s: any) => s.seasonNumber === season)?.episodes?.find((e: any) => Number(e.episodeNumber) === episodeNumber);
+
+  useEffect(() => {
+    setSelectedWatchLinkId(null);
+  }, [activeEpisode?.id]);
+
   if (!current && !watchError) return <Shell><div className="py-20 text-center text-sm text-muted-foreground">جارٍ تحميل المشاهدة…</div></Shell>;
   if (!current) return <Shell><EmptyState title="Playback unavailable" description="This title could not be found." href="/" label="Return home" /></Shell>;
   const percent = progress[current.id] || 0;
   const remoteEpisodes = remoteDetail?.seasons?.find((s: any) => s.seasonNumber === season)?.episodes || [];
   const episodes: number[] = current.type === 'series' ? (remoteEpisodes.length ? remoteEpisodes.map((e: any) => Number(e.episodeNumber)) : []) : [1];
   const update = (amount: number) => setProgress(prev=>({...prev,[current.id]: Math.min(98, amount)}));
-  const episodeNumber = Number(new URLSearchParams(window.location.search).get('episode') || 1);
-  const activeEpisode = remoteDetail?.seasons?.flatMap((s: any) => s.episodes || []).find((e: any) => e.episodeNumber === episodeNumber);
-  return <Shell><Meta title={`Watch ${current.title}`} description={`Playback for ${current.title}.`} /><div className="page-enter"><div className="grid gap-7 xl:grid-cols-[1fr_320px]"><div><div className="relative aspect-video overflow-hidden border border-border bg-black">{current.trailer ? <video data-testid="video-demo-player" controls poster={current.backdrop} className="h-full w-full" onTimeUpdate={e=>update(Math.round((e.currentTarget.currentTime/e.currentTarget.duration)*100)||percent)}><source src={current.trailer} type="video/mp4" /></video> : <div className="grid h-full place-items-center p-8 text-center text-sm text-muted-foreground">اختر خادم مشاهدة من القائمة الجانبية لفتح الحلقة الفعلية.</div>}</div>{activeEpisode?.watchLinks?.length > 0 ? <div className="mt-4 flex flex-wrap gap-2">{activeEpisode.watchLinks.map((link: any) => <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="border border-primary/50 px-4 py-2 text-xs text-primary hover:bg-primary hover:text-primary-foreground">مشاهدة عبر {link.name}</a>)}</div> : current.type === 'series' && <p className="mt-4 text-xs text-muted-foreground">لا توجد روابط مشاهدة لهذه الحلقة بعد.</p>}<div className="mt-6 flex flex-wrap items-start justify-between gap-4"><div><p className="font-mono-ui text-[10px] tracking-[.25em] text-primary">NOW PLAYING</p><h1 data-testid="text-watch-title" className="mt-2 font-display text-4xl italic">{current.title}</h1><p className="mt-2 text-sm text-muted-foreground">{current.type==='series'?`Season ${season} · Episode ${episodeNumber}`:'Feature film'} · {current.country}</p></div><Button onClick={()=>toggleWatchlist(current.id)} variant="outline" testId="button-watch-player-list">{watchlist.includes(current.id)?<Check size={15}/>:<Bookmark size={15}/>} {watchlist.includes(current.id)?'On shelf':'Add to shelf'}</Button></div><div className="mt-5 h-1 bg-secondary"><div className="h-full bg-primary transition-[width]" style={{width:`${percent}%`}} /></div></div><aside className="border border-border bg-card p-5"><div className="flex items-center justify-between"><h2 className="font-display text-xl italic">Up next</h2></div><div className="mt-5 space-y-2">{episodes.map(ep=><Link key={ep} href={`/watch/${current.id}?episode=${ep}`} data-testid={`link-watch-episode-${ep}`} className={`flex items-center gap-3 border px-3 py-3 text-sm transition ${ep===episodeNumber?'border-primary/60 bg-primary/10':'border-border hover:bg-secondary'}`}><span className="font-mono-ui text-xs text-primary">{String(ep).padStart(2,'0')}</span><span>{current.type==='series'?`Episode ${ep}`:'Play film'}</span></Link>)}</div></aside></div><Row title="Continue the mood" items={allRemote.items.map(toLegacyTitle).filter(t=>t.id!==current.id && t.genres.some(g=>current.genres.includes(g))).slice(0,6)} onToast={()=>undefined} /></div></Shell>;
+  const watchLinks = activeEpisode?.watchLinks || [];
+  const selectedWatchLink = watchLinks.find((link: any) => link.id === selectedWatchLinkId) || watchLinks[0];
+  const embedUrl = selectedWatchLink ? getEmbedUrl(selectedWatchLink.url) : null;
+  const isDirectVideo = !!embedUrl && /\.(mp4|webm|ogg)(?:$|[?#])/i.test(embedUrl);
+
+  return <Shell><Meta title={`Watch ${current.title}`} description={`Playback for ${current.title}.`} /><div className="page-enter"><div className="grid gap-7 xl:grid-cols-[1fr_320px]"><div>
+    <div className="relative aspect-video overflow-hidden border border-border bg-black">
+      {current.type === 'movie' && current.trailer ? (
+        <video data-testid="video-demo-player" controls poster={current.backdrop} className="h-full w-full" onTimeUpdate={e=>update(Math.round((e.currentTarget.currentTime/e.currentTarget.duration)*100)||percent)}>
+          <source src={current.trailer} type="video/mp4" />
+        </video>
+      ) : selectedWatchLink && embedUrl ? (
+        isDirectVideo ? (
+          <video key={embedUrl} data-testid="video-watch-player" controls playsInline poster={current.backdrop} className="h-full w-full" onTimeUpdate={e=>update(Math.round((e.currentTarget.currentTime/e.currentTarget.duration)*100)||percent)}>
+            <source src={embedUrl} />
+          </video>
+        ) : (
+          <iframe key={embedUrl} data-testid="iframe-watch-player" src={embedUrl} title={`${current.title} - Episode ${episodeNumber}`} className="h-full w-full border-0" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
+        )
+      ) : (
+        <div className="grid h-full place-items-center p-8 text-center text-sm text-muted-foreground">
+          {selectedWatchLink ? 'رابط خادم المشاهدة غير صالح.' : 'اختر خادم مشاهدة من القائمة أدناه لتشغيل الحلقة داخل ASIAN SCREEN.'}
+        </div>
+      )}
+    </div>
+
+    {watchLinks.length > 0 && <div className="mt-4">
+      <p className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">خوادم المشاهدة</p>
+      <div className="flex flex-wrap gap-2">
+        {watchLinks.map((link: any) => <button key={link.id} type="button" data-testid={`button-watch-server-${link.id}`} onClick={() => setSelectedWatchLinkId(link.id)} className={`border px-4 py-2 text-xs transition ${selectedWatchLink?.id === link.id ? 'border-primary bg-primary text-primary-foreground' : 'border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground'}`}>
+          {link.name}
+        </button>)}
+      </div>
+    </div>}
+
+    {current.type === 'series' && watchLinks.length === 0 && <p className="mt-4 text-xs text-muted-foreground">لا توجد روابط مشاهدة لهذه الحلقة بعد.</p>}
+    {current.type === 'series' && selectedWatchLink && !embedUrl && <p className="mt-3 text-xs text-muted-foreground">تعذر تحويل رابط هذا الخادم إلى مشغل مضمّن.</p>}
+
+    <div className="mt-6 flex flex-wrap items-start justify-between gap-4"><div><p className="font-mono-ui text-[10px] tracking-[.25em] text-primary">NOW PLAYING</p><h1 data-testid="text-watch-title" className="mt-2 font-display text-4xl italic">{current.title}</h1><p className="mt-2 text-sm text-muted-foreground">{current.type==='series'?`Season ${season} · Episode ${episodeNumber}`:'Feature film'} · {current.country}</p></div><Button onClick={()=>toggleWatchlist(current.id)} variant="outline" testId="button-watch-player-list">{watchlist.includes(current.id)?<Check size={15}/>:<Bookmark size={15}/>} {watchlist.includes(current.id)?'On shelf':'Add to shelf'}</Button></div><div className="mt-5 h-1 bg-secondary"><div className="h-full bg-primary transition-[width]" style={{width:`${percent}%`}} /></div></div><aside className="border border-border bg-card p-5"><div className="flex items-center justify-between"><h2 className="font-display text-xl italic">Up next</h2></div><div className="mt-5 space-y-2">{episodes.map(ep=><Link key={ep} href={`/watch/${current.id}?episode=${ep}`} data-testid={`link-watch-episode-${ep}`} className={`flex items-center gap-3 border px-3 py-3 text-sm transition ${ep===episodeNumber?'border-primary/60 bg-primary/10':'border-border hover:bg-secondary'}`}><span className="font-mono-ui text-xs text-primary">{String(ep).padStart(2,'0')}</span><span>{current.type==='series'?`Episode ${ep}`:'Play film'}</span></Link>)}</div></aside></div><Row title="Continue the mood" items={allRemote.items.map(toLegacyTitle).filter(t=>t.id!==current.id && t.genres.some(g=>current.genres.includes(g))).slice(0,6)} onToast={()=>undefined} /></div></Shell>;
 }
 
 function SearchPage() {
