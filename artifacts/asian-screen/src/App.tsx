@@ -189,107 +189,902 @@ function Detail({ type }: { type: TitleType }) {
 function getEmbedUrl(rawUrl: string) {
   const value = rawUrl.trim();
   if (!value) return null;
+
   try {
     const url = new URL(value);
     const host = url.hostname.toLowerCase();
 
-    // OK.ru: convert normal video pages to the official embed URL.
-    if (host === 'ok.ru' || host === 'www.ok.ru') {
-      const match = url.pathname.match(/\/video\/(?:embed\/)?(\d+)/);
-      if (match?.[1]) return `https://ok.ru/videoembed/${match[1]}`;
+    // =========================
+    // OK.RU
+    // =========================
+    if (host === "ok.ru" || host === "www.ok.ru") {
+      const match = url.pathname.match(
+        /\/video\/(?:embed\/)?(\d+)/
+      );
+
+      if (match?.[1]) {
+        return `https://ok.ru/videoembed/${match[1]}`;
+      }
     }
 
-    // YouTube: support normal watch links, short links and existing embed links.
-    if (host === 'youtube.com' || host === 'www.youtube.com' || host === 'm.youtube.com') {
-      if (url.pathname.startsWith('/embed/')) return value;
-      const videoId = url.searchParams.get('v');
-      if (videoId) return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
-    }
-    if (host === 'youtu.be') {
-      const videoId = url.pathname.replace(/^\//, '').split('/')[0];
-      if (videoId) return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
+    // =========================
+    // YOUTUBE
+    // =========================
+    if (
+      host === "youtube.com" ||
+      host === "www.youtube.com" ||
+      host === "m.youtube.com"
+    ) {
+      // Already an embed URL
+      if (url.pathname.startsWith("/embed/")) {
+        return value;
+      }
+
+      const videoId = url.searchParams.get("v");
+
+      if (videoId) {
+        return `https://www.youtube.com/embed/${encodeURIComponent(
+          videoId
+        )}`;
+      }
     }
 
-    // Vimeo: convert normal video URLs to the player endpoint.
-    if (host === 'vimeo.com' || host === 'www.vimeo.com') {
+    // YouTube short URL
+    if (host === "youtu.be") {
+      const videoId = url.pathname
+        .replace(/^\//, "")
+        .split("/")[0];
+
+      if (videoId) {
+        return `https://www.youtube.com/embed/${encodeURIComponent(
+          videoId
+        )}`;
+      }
+    }
+
+    // =========================
+    // VIMEO
+    // =========================
+    if (
+      host === "vimeo.com" ||
+      host === "www.vimeo.com"
+    ) {
       const match = url.pathname.match(/\/(\d+)/);
-      if (match?.[1]) return `https://player.vimeo.com/video/${match[1]}`;
+
+      if (match?.[1]) {
+        return `https://player.vimeo.com/video/${match[1]}`;
+      }
     }
 
-    // Preserve explicit embed/player URLs and otherwise try the supplied URL
-    // as an iframe source. The remote host still decides whether embedding is allowed.
+    // =========================
+    // OTHER EMBED / DIRECT URL
+    // =========================
     return value;
   } catch {
     return null;
   }
 }
 
+
 function Watch({ item }: { item: Title | undefined }) {
   const { id } = useParams<{ id: string }>();
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
+
   const [remoteDetail, setRemoteDetail] = useState<any>(null);
   const [watchError, setWatchError] = useState(false);
-  const [selectedWatchLinkId, setSelectedWatchLinkId] = useState<string | null>(null);
-  const allRemote = usePublicTitles({ page: 1, pageSize: 100 });
-  useEffect(() => { if (id) void getPublicTitle(id).then(value => { setRemoteDetail(value); setWatchError(false); }).catch(() => setWatchError(true)); }, [id]);
-  const [progress, setProgress] = useStored<Record<string,number>>('asian-progress', {});
-  const [watchlist, toggleWatchlist] = useIds('asian-watchlist');
-  const [season, setSeason] = useState(1);
-  const current = remoteDetail ? toLegacyTitle(remoteDetail) : undefined;
-  const episodeNumber = Number(new URLSearchParams(location.split('?')[1] || '').get('episode') || 1);
-  const activeEpisode = remoteDetail?.seasons?.find((s: any) => s.seasonNumber === season)?.episodes?.find((e: any) => Number(e.episodeNumber) === episodeNumber);
 
+  const [selectedWatchLinkId, setSelectedWatchLinkId] =
+    useState<string | null>(null);
+
+  const [progress, setProgress] = useStored<Record<string, number>>(
+    "asian-progress",
+    {}
+  );
+
+  const [watchlist, toggleWatchlist] =
+    useIds("asian-watchlist");
+
+  const [season, setSeason] = useState(1);
+
+  /*
+   * Read episode directly from the current URL.
+   * This makes /watch/id?episode=2 immediately represent episode 2.
+   */
+  const getEpisodeFromUrl = () => {
+    if (typeof window === "undefined") {
+      return 1;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const value = Number(params.get("episode"));
+
+    if (!Number.isFinite(value) || value <= 0) {
+      return 1;
+    }
+
+    return value;
+  };
+
+  const getSeasonFromUrl = () => {
+    if (typeof window === "undefined") {
+      return 1;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const value = Number(params.get("season"));
+
+    if (!Number.isFinite(value) || value <= 0) {
+      return 1;
+    }
+
+    return value;
+  };
+
+  const [episodeNumber, setEpisodeNumber] =
+    useState<number>(getEpisodeFromUrl());
+
+  /*
+   * Load the real title from the backend.
+   */
+  useEffect(() => {
+    if (!id) return;
+
+    void getPublicTitle(id)
+      .then((value) => {
+        setRemoteDetail(value);
+        setWatchError(false);
+      })
+      .catch(() => {
+        setWatchError(true);
+      });
+  }, [id]);
+
+  /*
+   * IMPORTANT:
+   * When Wouter changes the URL from:
+   *
+   * ?episode=1
+   *
+   * to:
+   *
+   * ?episode=2
+   *
+   * update React state as well.
+   */
+  useEffect(() => {
+    setEpisodeNumber(getEpisodeFromUrl());
+    setSeason(getSeasonFromUrl());
+
+    // Reset selected server so the new episode
+    // automatically uses its first server.
+    setSelectedWatchLinkId(null);
+  }, [location, id]);
+
+  /*
+   * Convert backend title to the format used by the existing UI.
+   */
+  const current = remoteDetail
+    ? toLegacyTitle(remoteDetail)
+    : item;
+
+  /*
+   * Find the currently selected season.
+   */
+  const activeSeason =
+    remoteDetail?.seasons?.find(
+      (s: any) =>
+        Number(s.seasonNumber) === Number(season)
+    ) ||
+    remoteDetail?.seasons?.[0];
+
+  /*
+   * If there is no valid season in the URL,
+   * use the actual season that was found.
+   */
+  useEffect(() => {
+    if (
+      remoteDetail?.seasons?.length &&
+      !remoteDetail.seasons.some(
+        (s: any) =>
+          Number(s.seasonNumber) === Number(season)
+      )
+    ) {
+      setSeason(
+        Number(
+          remoteDetail.seasons[0].seasonNumber
+        )
+      );
+    }
+  }, [remoteDetail, season]);
+
+  /*
+   * Find the exact episode.
+   */
+  const activeEpisode =
+    activeSeason?.episodes?.find(
+      (e: any) =>
+        Number(e.episodeNumber) ===
+        Number(episodeNumber)
+    );
+
+  /*
+   * Every time the episode changes,
+   * remove the previous selected server.
+   */
   useEffect(() => {
     setSelectedWatchLinkId(null);
   }, [activeEpisode?.id]);
 
-  if (!current && !watchError) return <Shell><div className="py-20 text-center text-sm text-muted-foreground">جارٍ تحميل المشاهدة…</div></Shell>;
-  if (!current) return <Shell><EmptyState title="Playback unavailable" description="This title could not be found." href="/" label="Return home" /></Shell>;
-  const percent = progress[current.id] || 0;
-  const remoteEpisodes = remoteDetail?.seasons?.find((s: any) => s.seasonNumber === season)?.episodes || [];
-  const episodes: number[] = current.type === 'series' ? (remoteEpisodes.length ? remoteEpisodes.map((e: any) => Number(e.episodeNumber)) : []) : [1];
-  const update = (amount: number) => setProgress(prev=>({...prev,[current.id]: Math.min(98, amount)}));
-  const watchLinks = activeEpisode?.watchLinks || [];
-  const selectedWatchLink = watchLinks.find((link: any) => link.id === selectedWatchLinkId) || watchLinks[0];
-  const embedUrl = selectedWatchLink ? getEmbedUrl(selectedWatchLink.url) : null;
-  const isDirectVideo = !!embedUrl && /\.(mp4|webm|ogg)(?:$|[?#])/i.test(embedUrl);
+  /*
+   * Go to another episode without opening
+   * another page or reloading the website.
+   */
+  const goToEpisode = (ep: number) => {
+    if (!id) return;
 
-  return <Shell><Meta title={`Watch ${current.title}`} description={`Playback for ${current.title}.`} /><div className="page-enter"><div className="grid gap-7 xl:grid-cols-[1fr_320px]"><div>
-    <div className="relative aspect-video overflow-hidden border border-border bg-black">
-      {current.type === 'movie' && current.trailer ? (
-        <video data-testid="video-demo-player" controls poster={current.backdrop} className="h-full w-full" onTimeUpdate={e=>update(Math.round((e.currentTarget.currentTime/e.currentTarget.duration)*100)||percent)}>
-          <source src={current.trailer} type="video/mp4" />
-        </video>
-      ) : selectedWatchLink && embedUrl ? (
-        isDirectVideo ? (
-          <video key={embedUrl} data-testid="video-watch-player" controls playsInline poster={current.backdrop} className="h-full w-full" onTimeUpdate={e=>update(Math.round((e.currentTarget.currentTime/e.currentTarget.duration)*100)||percent)}>
-            <source src={embedUrl} />
-          </video>
-        ) : (
-          <iframe key={embedUrl} data-testid="iframe-watch-player" src={embedUrl} title={`${current.title} - Episode ${episodeNumber}`} className="h-full w-full border-0" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
-        )
-      ) : (
-        <div className="grid h-full place-items-center p-8 text-center text-sm text-muted-foreground">
-          {selectedWatchLink ? 'رابط خادم المشاهدة غير صالح.' : 'اختر خادم مشاهدة من القائمة أدناه لتشغيل الحلقة داخل ASIAN SCREEN.'}
+    const nextEpisode = Number(ep);
+
+    if (
+      !Number.isFinite(nextEpisode) ||
+      nextEpisode <= 0
+    ) {
+      return;
+    }
+
+    /*
+     * Update React immediately.
+     */
+    setEpisodeNumber(nextEpisode);
+
+    /*
+     * Reset server.
+     */
+    setSelectedWatchLinkId(null);
+
+    /*
+     * Update browser URL through Wouter.
+     * No full page reload.
+     */
+    navigate(
+      `/watch/${id}?season=${season}&episode=${nextEpisode}`
+    );
+
+    /*
+     * Scroll to player.
+     */
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  /*
+   * Change season and automatically start
+   * episode 1 of that season.
+   */
+  const goToSeason = (seasonNumber: number) => {
+    if (!id) return;
+
+    const nextSeason = Number(seasonNumber);
+
+    if (
+      !Number.isFinite(nextSeason) ||
+      nextSeason <= 0
+    ) {
+      return;
+    }
+
+    setSeason(nextSeason);
+    setEpisodeNumber(1);
+    setSelectedWatchLinkId(null);
+
+    navigate(
+      `/watch/${id}?season=${nextSeason}&episode=1`
+    );
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  /*
+   * Loading state.
+   */
+  if (!current && !watchError) {
+    return (
+      <Shell>
+        <div className="py-20 text-center text-sm text-muted-foreground">
+          جارٍ تحميل المشاهدة…
         </div>
-      )}
-    </div>
+      </Shell>
+    );
+  }
 
-    {watchLinks.length > 0 && <div className="mt-4">
-      <p className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">خوادم المشاهدة</p>
-      <div className="flex flex-wrap gap-2">
-        {watchLinks.map((link: any) => <button key={link.id} type="button" data-testid={`button-watch-server-${link.id}`} onClick={() => setSelectedWatchLinkId(link.id)} className={`border px-4 py-2 text-xs transition ${selectedWatchLink?.id === link.id ? 'border-primary bg-primary text-primary-foreground' : 'border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground'}`}>
-          {link.name}
-        </button>)}
+  /*
+   * Error state.
+   */
+  if (!current) {
+    return (
+      <Shell>
+        <EmptyState
+          title="Playback unavailable"
+          description="This title could not be found."
+          href="/"
+          label="Return home"
+        />
+      </Shell>
+    );
+  }
+
+  const percent = progress[current.id] || 0;
+
+  /*
+   * Episodes for the currently selected season.
+   */
+  const remoteEpisodes =
+    activeSeason?.episodes || [];
+
+  const episodes: number[] =
+    current.type === "series"
+      ? remoteEpisodes
+          .map((e: any) =>
+            Number(e.episodeNumber)
+          )
+          .filter((n: number) =>
+            Number.isFinite(n)
+          )
+          .sort(
+            (a: number, b: number) =>
+              a - b
+          )
+      : [1];
+
+  /*
+   * Previous / next episode.
+   */
+  const currentIndex =
+    episodes.indexOf(episodeNumber);
+
+  const previousEpisode =
+    currentIndex > 0
+      ? episodes[currentIndex - 1]
+      : null;
+
+  const nextEpisode =
+    currentIndex >= 0 &&
+    currentIndex < episodes.length - 1
+      ? episodes[currentIndex + 1]
+      : null;
+
+  /*
+   * Watch servers belonging ONLY to the
+   * currently selected episode.
+   */
+  const watchLinks =
+    activeEpisode?.watchLinks || [];
+
+  /*
+   * Selected server.
+   * If no server was manually selected,
+   * automatically use the first one.
+   */
+  const selectedWatchLink =
+    watchLinks.find(
+      (link: any) =>
+        link.id === selectedWatchLinkId
+    ) || watchLinks[0];
+
+  /*
+   * Convert OK.ru / YouTube / Vimeo /
+   * direct URLs into playable URLs.
+   */
+  const embedUrl = selectedWatchLink
+    ? getEmbedUrl(selectedWatchLink.url)
+    : null;
+
+  /*
+   * Detect direct video files.
+   */
+  const isDirectVideo =
+    !!embedUrl &&
+    /\.(mp4|webm|ogg)(?:$|[?#])/i.test(
+      embedUrl
+    );
+
+  /*
+   * Save playback progress.
+   */
+  const update = (amount: number) => {
+    if (!Number.isFinite(amount)) {
+      return;
+    }
+
+    setProgress((prev) => ({
+      ...prev,
+      [current.id]: Math.min(
+        98,
+        Math.max(0, amount)
+      ),
+    }));
+  };
+
+  return (
+    <Shell>
+      <Meta
+        title={`Watch ${current.title}`}
+        description={`Playback for ${current.title}.`}
+      />
+
+      <div className="page-enter">
+        <div className="grid gap-7 xl:grid-cols-[1fr_320px]">
+
+          {/* =========================================
+              PLAYER
+          ========================================= */}
+          <div>
+
+            <div className="relative aspect-video overflow-hidden border border-border bg-black">
+
+              {/* Movie trailer */}
+              {current.type === "movie" &&
+              current.trailer ? (
+                <video
+                  key={current.trailer}
+                  data-testid="video-demo-player"
+                  controls
+                  playsInline
+                  poster={current.backdrop}
+                  className="h-full w-full object-contain"
+                  onTimeUpdate={(e) => {
+                    const video =
+                      e.currentTarget;
+
+                    if (
+                      video.duration &&
+                      Number.isFinite(
+                        video.duration
+                      )
+                    ) {
+                      update(
+                        (video.currentTime /
+                          video.duration) *
+                          100
+                      );
+                    }
+                  }}
+                >
+                  <source
+                    src={current.trailer}
+                    type="video/mp4"
+                  />
+                </video>
+
+              ) : selectedWatchLink &&
+                embedUrl ? (
+
+                /*
+                 * Direct MP4/WebM/OGG
+                 */
+                isDirectVideo ? (
+                  <video
+                    key={`${activeEpisode?.id}-${embedUrl}`}
+                    data-testid="video-watch-player"
+                    controls
+                    autoPlay
+                    playsInline
+                    poster={current.backdrop}
+                    className="h-full w-full object-contain"
+                    onTimeUpdate={(e) => {
+                      const video =
+                        e.currentTarget;
+
+                      if (
+                        video.duration &&
+                        Number.isFinite(
+                          video.duration
+                        )
+                      ) {
+                        update(
+                          (video.currentTime /
+                            video.duration) *
+                            100
+                        );
+                      }
+                    }}
+                  >
+                    <source
+                      src={embedUrl}
+                    />
+                  </video>
+
+                ) : (
+
+                  /*
+                   * OK.ru / YouTube / Vimeo / other iframe
+                   */
+                  <iframe
+                    key={`${activeEpisode?.id}-${selectedWatchLink.id}-${embedUrl}`}
+                    data-testid="iframe-watch-player"
+                    src={embedUrl}
+                    title={`${current.title} - Episode ${episodeNumber}`}
+                    className="h-full w-full border-0"
+                    allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                    allowFullScreen
+                    referrerPolicy="strict-origin-when-cross-origin"
+                  />
+                )
+
+              ) : (
+
+                /*
+                 * No playable server
+                 */
+                <div className="grid h-full place-items-center p-8 text-center text-sm text-muted-foreground">
+                  {selectedWatchLink
+                    ? "رابط خادم المشاهدة غير صالح."
+                    : "اختر خادم مشاهدة من القائمة أدناه لتشغيل الحلقة داخل ASIAN SCREEN."}
+                </div>
+              )}
+
+            </div>
+
+
+            {/* =========================================
+                WATCH SERVERS
+            ========================================= */}
+            {watchLinks.length > 0 && (
+              <div className="mt-4">
+
+                <p className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+                  خوادم المشاهدة
+                </p>
+
+                <div className="flex flex-wrap gap-2">
+
+                  {watchLinks.map(
+                    (link: any) => {
+                      const isSelected =
+                        selectedWatchLink?.id ===
+                        link.id;
+
+                      return (
+                        <button
+                          key={link.id}
+                          type="button"
+                          data-testid={`button-watch-server-${link.id}`}
+                          onClick={() => {
+                            setSelectedWatchLinkId(
+                              link.id
+                            );
+                          }}
+                          className={`border px-4 py-2 text-xs transition ${
+                            isSelected
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground"
+                          }`}
+                        >
+                          {link.name}
+                        </button>
+                      );
+                    }
+                  )}
+
+                </div>
+              </div>
+            )}
+
+
+            {/* No servers */}
+            {current.type === "series" &&
+              watchLinks.length === 0 && (
+                <p className="mt-4 text-xs text-muted-foreground">
+                  لا توجد روابط مشاهدة لهذه الحلقة بعد.
+                </p>
+              )}
+
+
+            {/* Invalid URL */}
+            {current.type === "series" &&
+              selectedWatchLink &&
+              !embedUrl && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  تعذر تحويل رابط هذا الخادم إلى مشغل مضمّن.
+                </p>
+              )}
+
+
+            {/* =========================================
+                TITLE / INFO
+            ========================================= */}
+            <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
+
+              <div>
+
+                <p className="font-mono-ui text-[10px] tracking-[.25em] text-primary">
+                  NOW PLAYING
+                </p>
+
+                <h1
+                  data-testid="text-watch-title"
+                  className="mt-2 font-display text-4xl italic"
+                >
+                  {current.title}
+                </h1>
+
+                <p className="mt-2 text-sm text-muted-foreground">
+
+                  {current.type === "series"
+                    ? `Season ${season} · Episode ${episodeNumber}`
+                    : "Feature film"}
+
+                  {" · "}
+
+                  {current.country}
+
+                </p>
+
+              </div>
+
+
+              {/* Watchlist */}
+              <Button
+                onClick={() =>
+                  toggleWatchlist(current.id)
+                }
+                variant="outline"
+                testId="button-watch-player-list"
+              >
+                {watchlist.includes(
+                  current.id
+                ) ? (
+                  <Check size={15} />
+                ) : (
+                  <Bookmark size={15} />
+                )}
+
+                {watchlist.includes(
+                  current.id
+                )
+                  ? "On shelf"
+                  : "Add to shelf"}
+              </Button>
+
+            </div>
+
+
+            {/* =========================================
+                PROGRESS
+            ========================================= */}
+            <div className="mt-5 h-1 bg-secondary">
+
+              <div
+                className="h-full bg-primary transition-[width]"
+                style={{
+                  width: `${Math.max(
+                    0,
+                    Math.min(100, percent)
+                  )}%`,
+                }}
+              />
+
+            </div>
+
+
+            {/* =========================================
+                PREVIOUS / NEXT
+            ========================================= */}
+            {current.type === "series" &&
+              episodes.length > 0 && (
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+
+                  <button
+                    type="button"
+                    disabled={
+                      previousEpisode === null
+                    }
+                    onClick={() => {
+                      if (
+                        previousEpisode !==
+                        null
+                      ) {
+                        goToEpisode(
+                          previousEpisode
+                        );
+                      }
+                    }}
+                    className={`border px-4 py-3 text-xs transition ${
+                      previousEpisode ===
+                      null
+                        ? "cursor-not-allowed opacity-30"
+                        : "border-border bg-secondary/40 hover:border-primary/60"
+                    }`}
+                  >
+                    ← الحلقة السابقة
+                  </button>
+
+
+                  <button
+                    type="button"
+                    disabled={
+                      nextEpisode === null
+                    }
+                    onClick={() => {
+                      if (
+                        nextEpisode !== null
+                      ) {
+                        goToEpisode(
+                          nextEpisode
+                        );
+                      }
+                    }}
+                    className={`border px-4 py-3 text-xs transition ${
+                      nextEpisode === null
+                        ? "cursor-not-allowed opacity-30"
+                        : "border-border bg-secondary/40 hover:border-primary/60"
+                    }`}
+                  >
+                    الحلقة التالية →
+                  </button>
+
+                </div>
+              )}
+
+          </div>
+
+
+          {/* =========================================
+              EPISODE SIDEBAR
+          ========================================= */}
+          <aside className="border border-border bg-card p-5">
+
+            <div className="flex items-center justify-between">
+
+              <h2 className="font-display text-xl italic">
+                الحلقات
+              </h2>
+
+              <span className="text-xs text-muted-foreground">
+                {episodes.length} حلقة
+              </span>
+
+            </div>
+
+
+            {/* =========================================
+                SEASONS
+            ========================================= */}
+            {remoteDetail?.seasons &&
+              remoteDetail.seasons.length > 1 && (
+                <div className="mt-5 flex flex-wrap gap-2">
+
+                  {remoteDetail.seasons.map(
+                    (s: any) => {
+
+                      const seasonNumber =
+                        Number(
+                          s.seasonNumber
+                        );
+
+                      const isActive =
+                        seasonNumber ===
+                        Number(season);
+
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() =>
+                            goToSeason(
+                              seasonNumber
+                            )
+                          }
+                          className={`border px-3 py-2 text-xs transition ${
+                            isActive
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border hover:border-primary/60"
+                          }`}
+                        >
+                          {s.title ||
+                            `الموسم ${seasonNumber}`}
+                        </button>
+                      );
+                    }
+                  )}
+
+                </div>
+              )}
+
+
+            {/* =========================================
+                EPISODES
+            ========================================= */}
+            <div className="mt-5 max-h-[650px] space-y-2 overflow-y-auto pr-1">
+
+              {episodes.length > 0 ? (
+                episodes.map((ep) => {
+
+                  const isActive =
+                    Number(ep) ===
+                    Number(
+                      episodeNumber
+                    );
+
+                  return (
+                    <button
+                      key={ep}
+                      type="button"
+                      onClick={() =>
+                        goToEpisode(ep)
+                      }
+                      data-testid={`link-watch-episode-${ep}`}
+                      className={`flex w-full items-center gap-3 border px-3 py-3 text-right text-sm transition ${
+                        isActive
+                          ? "border-primary/60 bg-primary/10"
+                          : "border-border hover:bg-secondary"
+                      }`}
+                    >
+
+                      <span className="font-mono-ui text-xs text-primary">
+                        {String(ep).padStart(
+                          2,
+                          "0"
+                        )}
+                      </span>
+
+                      <span>
+                        {current.type ===
+                        "series"
+                          ? `الحلقة ${ep}`
+                          : "تشغيل الفيلم"}
+                      </span>
+
+                      {isActive && (
+                        <span className="mr-auto text-[10px] text-primary">
+                          تشاهد الآن
+                        </span>
+                      )}
+
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="py-8 text-center text-sm text-muted-foreground">
+                  لا توجد حلقات متاحة لهذا الموسم.
+                </div>
+              )}
+
+            </div>
+
+          </aside>
+
+        </div>
+
+
+        {/* =========================================
+            CONTINUE WATCHING / SIMILAR
+        ========================================= */}
+        {allRemote?.items && (
+          <Row
+            title="Continue the mood"
+            items={allRemote.items
+              .map(toLegacyTitle)
+              .filter(
+                (t) =>
+                  t.id !== current.id &&
+                  t.genres.some((g) =>
+                    current.genres.includes(g)
+                  )
+              )
+              .slice(0, 6)}
+            onToast={() => undefined}
+          />
+        )}
+
       </div>
-    </div>}
-
-    {current.type === 'series' && watchLinks.length === 0 && <p className="mt-4 text-xs text-muted-foreground">لا توجد روابط مشاهدة لهذه الحلقة بعد.</p>}
-    {current.type === 'series' && selectedWatchLink && !embedUrl && <p className="mt-3 text-xs text-muted-foreground">تعذر تحويل رابط هذا الخادم إلى مشغل مضمّن.</p>}
-
-    <div className="mt-6 flex flex-wrap items-start justify-between gap-4"><div><p className="font-mono-ui text-[10px] tracking-[.25em] text-primary">NOW PLAYING</p><h1 data-testid="text-watch-title" className="mt-2 font-display text-4xl italic">{current.title}</h1><p className="mt-2 text-sm text-muted-foreground">{current.type==='series'?`Season ${season} · Episode ${episodeNumber}`:'Feature film'} · {current.country}</p></div><Button onClick={()=>toggleWatchlist(current.id)} variant="outline" testId="button-watch-player-list">{watchlist.includes(current.id)?<Check size={15}/>:<Bookmark size={15}/>} {watchlist.includes(current.id)?'On shelf':'Add to shelf'}</Button></div><div className="mt-5 h-1 bg-secondary"><div className="h-full bg-primary transition-[width]" style={{width:`${percent}%`}} /></div></div><aside className="border border-border bg-card p-5"><div className="flex items-center justify-between"><h2 className="font-display text-xl italic">Up next</h2></div><div className="mt-5 space-y-2">{episodes.map(ep=><Link key={ep} href={`/watch/${current.id}?episode=${ep}`} data-testid={`link-watch-episode-${ep}`} className={`flex items-center gap-3 border px-3 py-3 text-sm transition ${ep===episodeNumber?'border-primary/60 bg-primary/10':'border-border hover:bg-secondary'}`}><span className="font-mono-ui text-xs text-primary">{String(ep).padStart(2,'0')}</span><span>{current.type==='series'?`Episode ${ep}`:'Play film'}</span></Link>)}</div></aside></div><Row title="Continue the mood" items={allRemote.items.map(toLegacyTitle).filter(t=>t.id!==current.id && t.genres.some(g=>current.genres.includes(g))).slice(0,6)} onToast={()=>undefined} /></div></Shell>;
+    </Shell>
+  );
 }
-
 function SearchPage() {
   const params = new URLSearchParams(window.location.search);
   const [query, setQuery] = useState(params.get('q') || '');
