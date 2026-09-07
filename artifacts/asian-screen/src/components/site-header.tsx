@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ChevronDown, ChevronLeft, House, Menu, Search, UserRound, X } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
-import { titles } from '@/lib/data';
+import { usePublicTitles, toLegacyTitle } from '@/lib/api';
 
 const dramaLinks = [
   { href: '/series', label: 'قائمة الدراما' },
@@ -52,11 +52,10 @@ export default function SiteHeader() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const suggestionsQuery = usePublicTitles({ q: query.trim(), page: 1, pageSize: 5 });
 
   const suggestions = query.trim()
-    ? titles
-        .filter((item) => `${item.title} ${item.originalTitle} ${item.cast.join(' ')} ${item.director}`.toLowerCase().includes(query.toLowerCase()))
-        .slice(0, 5)
+    ? suggestionsQuery.items.map(toLegacyTitle)
     : [];
 
   useEffect(() => {

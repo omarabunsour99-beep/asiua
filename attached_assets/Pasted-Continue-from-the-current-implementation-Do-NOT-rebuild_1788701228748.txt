@@ -1,0 +1,140 @@
+Continue from the current implementation. Do NOT rebuild or redesign the website.
+
+The database, API, Admin console, seasons, episodes, watch links, and status-based pages are already implemented.
+
+Now finish the remaining integration and verify everything end-to-end.
+
+### 1. Complete public database integration
+
+Make sure ALL public pages use the PostgreSQL/API data as their source of truth:
+
+* Homepage
+* Movies
+* Countries
+* Genres
+* Search
+* Series listings
+* Upcoming
+* Airing
+* Recently completed
+* Title details
+* Seasons
+* Episodes
+* Watch page
+
+Remove any remaining dependency on the static `data.ts` catalogue for live content.
+
+Do not delete the old seed data if it is still needed for migration/seed, but it must NOT be the live source of truth.
+
+### 2. Admin authentication
+
+Finish production-safe Admin authentication.
+
+Use:
+
+* `ADMIN_EMAIL`
+* `ADMIN_PASSWORD`
+
+Do NOT hardcode credentials.
+Do NOT store passwords in frontend code.
+Do NOT use localStorage for authentication.
+
+Verify:
+
+* `/admin` requires authentication.
+* Unauthenticated users cannot access protected Admin APIs.
+* Login creates a secure HTTP-only session cookie.
+* Logout destroys the session.
+* Refreshing the browser keeps the authenticated session valid until expiration/logout.
+
+### 3. Test the complete CMS flow
+
+Actually test this flow:
+
+Admin login
+→ Create a Series
+→ Edit the Series
+→ Add Season 1
+→ Add Episode 1
+→ Add 2 or more Watch Servers
+→ Save
+→ Open the public Series page
+→ Open Season 1
+→ Open Episode 1
+→ Verify the real Watch Servers appear.
+
+Then edit the Series from Admin and verify the public page reflects the change after refresh.
+
+Also test:
+
+* Upcoming status
+* Airing status
+* Completed status
+* Search
+* Genre filtering
+* Country filtering
+* Movies
+* Delete behavior
+* Empty watch-links state
+
+### 4. Important restrictions
+
+Keep these permanently:
+
+* NO download system.
+* NO download buttons.
+* NO download API.
+* NO quality fields.
+* NO 360p / 480p / 720p / 1080p fields.
+* NO fake episode links.
+* NO generated watch URLs.
+* Do not invent watch links for seeded content.
+
+Watch Links must only contain:
+
+* Name
+* URL
+* Sort order if needed
+
+Unlimited watch servers per episode.
+
+### 5. Preserve the existing website
+
+Do NOT redesign the public website.
+
+Keep:
+
+* Existing branding
+* Existing Arabic RTL layout
+* Existing visual design
+* Existing routes
+* Existing responsive behavior
+
+Only fix data integration and functionality.
+
+### 6. Final verification
+
+Run:
+
+* Frontend typecheck
+* API typecheck
+* Frontend production build
+* API production build
+* Database/schema validation
+* API health check
+
+Check for remaining references where public pages directly use the static `titles` array as live content.
+
+If any page still uses static catalogue data instead of the API/database, fix it.
+
+At the end, report clearly:
+
+1. Which public pages are now database-backed.
+2. Whether Admin authentication works.
+3. Whether Create Series → Season → Episode → Watch Servers works.
+4. Whether Admin changes appear publicly after refresh.
+5. Whether any live page still depends on `data.ts`.
+6. Whether typecheck/build passed.
+7. Any remaining issues.
+
+Do not stop at UI changes. The task is only complete when the full Admin → PostgreSQL → API → Public Website flow works.

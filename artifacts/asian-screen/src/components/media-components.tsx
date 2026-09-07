@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Check, ChevronLeft, ChevronRight, Play, Plus } from 'lucide-react';
 import { Link } from 'wouter';
-import { titles, type Title } from '@/lib/data';
+import type { Title } from '@/lib/data';
 import { readStored, toggleStored } from '@/lib/store';
 
 type ToastHandler = (message: string) => void;
@@ -41,7 +41,6 @@ export function PosterCard({ item, compact = false, onToast }: { item: Title; co
         <button onClick={quickAdd} data-testid={`button-watchlist-${item.id}`} aria-label={saved ? `إزالة ${item.title} من قائمة المشاهدة` : `إضافة ${item.title} إلى قائمة المشاهدة`} className="absolute left-2 top-2 grid h-8 w-8 place-items-center rounded-full border border-white/20 bg-black/55 text-white opacity-0 backdrop-blur-sm transition hover:bg-primary focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary group-hover:opacity-100">
           {saved ? <Check size={15} /> : <Plus size={15} />}
         </button>
-        {item.hd && <span className="absolute bottom-2 right-2 bg-black/70 px-1.5 py-1 font-mono-ui text-[9px] text-white">{item.hd}</span>}
       </div>
       <Link href={`/${item.type}/${item.id}`} data-testid={`link-card-caption-${item.id}`} className="block pt-3 focus-visible:outline-none">
         <h3 className="truncate text-[13px] font-semibold text-foreground">{item.title}</h3>
@@ -152,5 +151,3 @@ export function EpisodePanels({ korean, asian }: { korean: Title[]; asian: Title
   };
   return <div className="mt-12 grid gap-5 lg:grid-cols-2">{panel('الحلقات الكورية الجديدة', korean, 'panel-new-korean')}{panel('حلقات آسيوية جديدة', asian, 'panel-new-asian')}</div>;
 }
-
-export const supportedSeries = titles.filter(item => item.type === 'series' && item.status !== 'Upcoming');

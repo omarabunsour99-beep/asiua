@@ -53,8 +53,8 @@ export const addLink = (id: string, name: string, url: string) => request<WatchL
 export const deleteLink = (id: string) => request<void>(`/admin/watch-links/${id}`, { method: "DELETE" });
 
 export function usePublicTitles(params: Record<string, string | number | undefined> = {}) {
-  const [items, setItems] = useState<ApiTitle[]>([]); const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<ApiTitle[]>([]); const [loading, setLoading] = useState(true); const [error, setError] = useState<Error | null>(null);
   const key = JSON.stringify(params);
-  useEffect(() => { let active = true; setLoading(true); listPublicTitles(params).then(x => active && setItems(x.items)).catch(() => active && setItems([])).finally(() => active && setLoading(false)); return () => { active = false; }; }, [key]);
-  return { items, loading };
+  useEffect(() => { let active = true; setLoading(true); listPublicTitles(params).then(x => { if (!active) return; setItems(x.items); setError(null); }).catch(reason => { if (!active) return; setItems([]); setError(reason instanceof Error ? reason : new Error('تعذر تحميل المحتوى')); }).finally(() => active && setLoading(false)); return () => { active = false; }; }, [key]);
+  return { items, loading, error };
 }

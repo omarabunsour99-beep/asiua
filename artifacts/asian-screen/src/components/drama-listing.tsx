@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Check, ChevronLeft, ChevronRight, RotateCcw, Search, SlidersHorizontal } from 'lucide-react';
 import { useLocation } from 'wouter';
-import { countries, genres, titles, type Title } from '@/lib/data';
+import type { Title } from '@/lib/data';
+import { COUNTRIES } from '@/lib/catalogue-constants';
 import { PosterCard } from '@/components/media-components';
 import { toLegacyTitle, usePublicTitles } from '@/lib/api';
 
@@ -68,6 +69,7 @@ function ListingHeader({ title, description }: { title: string; description: str
 function DramaFilters({
   status,
   values,
+  genreOptions,
   years,
   onChange,
   onApply,
@@ -75,6 +77,7 @@ function DramaFilters({
 }: {
   status: DramaStatus;
   values: { country: string; genre: string; year: string };
+  genreOptions: string[];
   years: number[];
   onChange: (key: 'country' | 'genre' | 'year', value: string) => void;
   onApply: () => void;
@@ -91,7 +94,7 @@ function DramaFilters({
           التصنيف
           <select data-testid="select-drama-country" value={values.country} onChange={(event) => onChange('country', event.target.value)} className="h-11 w-full border border-border bg-secondary px-3 text-xs text-foreground outline-none transition focus:border-primary">
             <option value="">كل التصنيفات</option>
-            {countries.map((country) => <option key={country} value={country}>{countryLabels[country]}</option>)}
+            {COUNTRIES.map((country) => <option key={country} value={country}>{countryLabels[country]}</option>)}
           </select>
         </label>
         <label className="flex min-w-0 flex-col gap-2 text-[11px] text-muted-foreground">
@@ -104,7 +107,7 @@ function DramaFilters({
           النوع
           <select data-testid="select-drama-genre" value={values.genre} onChange={(event) => onChange('genre', event.target.value)} className="h-11 w-full border border-border bg-secondary px-3 text-xs text-foreground outline-none transition focus:border-primary">
             <option value="">كل الأنواع</option>
-            {genres.map((genre) => <option key={genre} value={genre}>{genreLabels[genre] || genre}</option>)}
+            {genreOptions.map((genre) => <option key={genre} value={genre}>{genreLabels[genre] || genre}</option>)}
           </select>
         </label>
         <label className="flex min-w-0 flex-col gap-2 text-[11px] text-muted-foreground">
@@ -187,9 +190,9 @@ export function DramaListingPage({ status, title, description }: { status: Drama
   const [draft, setDraft] = useState({ country: applied.country, genre: applied.genre, year: applied.year });
   const [toast, setToast] = useState('');
   const [loading, setLoading] = useState(true);
-  const years = useMemo(() => Array.from(new Set(titles.filter((item) => item.type === 'series').map((item) => item.year))).sort((a, b) => b - a), []);
   const apiStatus = status === 'Upcoming' ? 'upcoming' : status === 'Ongoing' ? 'airing' : 'completed';
   const remote = usePublicTitles({ type: 'series', status: apiStatus, page: 1, pageSize: 100 });
+  const years = useMemo(() => Array.from(new Set(remote.items.map((item) => item.year))).sort((a, b) => b - a), [remote.items]);
 
   useEffect(() => {
     setDraft({ country: applied.country, genre: applied.genre, year: applied.year });
@@ -204,7 +207,8 @@ export function DramaListingPage({ status, title, description }: { status: Drama
     return () => window.clearTimeout(timer);
   }, [toast]);
 
-  const source = remote.items.length ? remote.items.map(toLegacyTitle) : titles;
+  const source = remote.items.map(toLegacyTitle);
+  const genreOptions = useMemo(() => Array.from(new Set(remote.items.flatMap((item) => item.genres))).sort(), [remote.items]);
   const filtered = useMemo(() => source
     .filter((item) => item.type === 'series' && item.status === status)
     .filter((item) => !applied.country || item.country === applied.country)
@@ -236,7 +240,8 @@ export function DramaListingPage({ status, title, description }: { status: Drama
   return (
     <div className="page-enter" dir="rtl">
       <ListingHeader title={title} description={description} />
-      <DramaFilters status={status} values={draft} years={years} onChange={(key, value) => setDraft((previous) => ({ ...previous, [key]: value }))} onApply={applyFilters} onReset={resetFilters} />
+       <DramaFilters status={status} values={draft} genreOptions={genreOptions} years={years} onChange={(key, value) => setDraft((previous) => ({ ...previous, [key]: value }))} onApply={applyFilters} onReset={resetFilters} />
+       {remote.error && <div className="mt-8 border border-primary/40 bg-primary/5 p-6 text-center text-sm text-muted-foreground">تعذر تحميل هذه الصفحة من قاعدة البيانات. حاول مرة أخرى.</div>}
       <div className="mt-7 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
         <span data-testid="text-drama-results-count">{filtered.length} عمل</span>
         <span className="inline-flex items-center gap-1.5 text-[11px]"><Check size={13} className="text-primary" /> {statusText(status)}</span>
