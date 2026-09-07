@@ -84,8 +84,69 @@ router.get("/admin/overview", async (_req, res) => {
   res.json({ ...map, series: Number(series.n), movies: Number(movies.n), upcoming: (await list({ query: { status: "upcoming", page: 1, pageSize: 1 } })).total, airing: (await list({ query: { status: "airing", page: 1, pageSize: 1 } })).total, completed: (await list({ query: { status: "completed", page: 1, pageSize: 1 } })).total });
 });
 router.get("/admin/titles", async (req, res) => res.json(await list(req)));
-router.post("/admin/titles", async (req, res) => { const error = titleInput(req.body); if (error) { res.status(400).json({ error }); return; } const { genres, ...body } = req.body; const id = randomUUID(); const [row] = await db.insert(titlesTable).values({ ...body, id }).returning(); await replaceGenres(id, genres); res.status(201).json(await detail(row.id)); });
-router.patch("/admin/titles/:id", async (req, res) => { const error = titleInput(req.body, true); if (error) { res.status(400).json({ error }); return; } const [row] = await db.select().from(titlesTable).where(eq(titlesTable.id, req.params.id)); if (!row) { res.status(404).json({ error: "Title not found" }); return; } const { genres, ...body } = req.body; if (Object.keys(body).length) await db.update(titlesTable).set(body).where(eq(titlesTable.id, row.id)); if (genres) await replaceGenres(row.id, genres); res.json(await detail(row.id)); });
+router.post("/admin/titles", async (req, res) => {
+  const error = titleInput(req.body);
+  if (error) {
+    res.status(400).json({ error });
+    return;
+  }
+
+  const {
+    genres,
+    id: _ignoredId,
+    createdAt: _ignoredCreatedAt,
+    updatedAt: _ignoredUpdatedAt,
+    ...body
+  } = req.body;
+
+  const id = randomUUID();
+
+  const [row] = await db
+    .insert(titlesTable)
+    .values({ ...body, id })
+    .returning();
+
+  await replaceGenres(id, genres);
+
+  res.status(201).json(await detail(row.id));
+});
+
+router.patch("/admin/titles/:id", async (req, res) => {
+  const error = titleInput(req.body, true);
+  if (error) {
+    res.status(400).json({ error });
+    return;
+  }
+
+  const [row] = await db
+    .select()
+    .from(titlesTable)
+    .where(eq(titlesTable.id, req.params.id));
+
+  if (!row) {
+    res.status(404).json({ error: "Title not found" });
+    return;
+  }
+
+  const {
+    genres,
+    id: _ignoredId,
+    createdAt: _ignoredCreatedAt,
+    updatedAt: _ignoredUpdatedAt,
+    ...body
+  } = req.body;
+
+  if (Object.keys(body).length) {
+    await db
+      .update(titlesTable)
+      .set(body)
+      .where(eq(titlesTable.id, row.id));
+  }
+
+  if (genres) await replaceGenres(row.id, genres);
+
+  res.json(await detail(row.id));
+});
 router.delete("/admin/titles/:id", async (req, res) => { const [row] = await db.delete(titlesTable).where(eq(titlesTable.id, req.params.id)).returning(); row ? res.sendStatus(204) : res.status(404).json({ error: "Title not found" }); });
 
 router.get("/admin/titles/:id/seasons", async (req, res) => res.json(await db.select().from(seasonsTable).where(eq(seasonsTable.seriesId, req.params.id)).orderBy(asc(seasonsTable.seasonNumber))));
