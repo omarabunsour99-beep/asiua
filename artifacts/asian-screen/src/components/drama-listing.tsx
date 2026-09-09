@@ -246,7 +246,7 @@ export function DramaListingPage({ status, title, description }: { status: Drama
         <span data-testid="text-drama-results-count">{filtered.length} عمل</span>
         <span className="inline-flex items-center gap-1.5 text-[11px]"><Check size={13} className="text-primary" /> {statusText(status)}</span>
       </div>
-       {loading || remote.loading ? <ListingSkeleton /> : visible.length ? <div data-testid="grid-drama-results" className="stagger mt-5 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">{visible.map((item) => <DramaCard key={item.id} item={item} onToast={setToast} />)}</div> : <EmptyResults onReset={resetFilters} />}
+      {loading || remote.loading ? <ListingSkeleton /> : visible.length ? <div data-testid="grid-drama-results" className="stagger mt-5 grid grid-cols-3 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">{visible.map((item) => <DramaCard key={item.id} item={item} onToast={setToast} />)}</div> : <EmptyResults onReset={resetFilters} />}
       {!loading && visible.length > 0 && <Pagination page={page} totalPages={totalPages} onChange={(nextPage) => updateUrl({ page: nextPage })} />}
       {toast && <div data-testid="drama-listing-toast" className="fixed right-4 top-20 z-40 border border-primary/40 bg-card/95 px-4 py-3 text-sm shadow-2xl shadow-black/30 backdrop-blur-md">{toast}</div>}
     </div>

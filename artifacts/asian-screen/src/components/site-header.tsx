@@ -196,7 +196,11 @@ export default function SiteHeader() {
             className="fixed inset-0 z-40 bg-black/70 backdrop-blur-[2px] lg:hidden"
             onClick={closeMobile}
           />
-          <aside dir="rtl" className="fixed inset-y-0 right-0 z-50 flex w-[min(88vw,360px)] flex-col border-l border-border bg-card shadow-2xl shadow-black/60 lg:hidden page-enter" aria-label="قائمة الهاتف">
+                    <aside
+                      dir="rtl"
+                      className="fixed right-0 top-0 z-[100] flex max-h-[100dvh] w-[88vw] max-w-[360px] flex-col overflow-hidden border-l border-border bg-card shadow-2xl shadow-black/60 lg:hidden page-enter"
+                      aria-label="قائمة الهاتف"
+                    >
             <div className="flex items-center justify-between border-b border-border px-5 py-5">
               <BrandMark />
               <button type="button" data-testid="button-mobile-close" aria-label="إغلاق القائمة" onClick={closeMobile} className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground">

@@ -70,7 +70,7 @@ export function MediaRow({ title, items, eyebrow = 'اختيارات آسيوي�
           <button type="button" disabled={!canNext} onClick={() => setOffset(offset + 1)} data-testid={`button-row-next-${title}`} aria-label="العناصر التالية" className="grid h-8 w-8 place-items-center border border-border text-muted-foreground transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-30"><ChevronLeft size={16} /></button>
         </div>
       </div>
-      <div className="scrollbar-hidden flex gap-4 overflow-x-auto pb-2 md:grid md:grid-cols-5 md:gap-5 md:overflow-visible lg:grid-cols-6 xl:grid-cols-7">
+        <div className="scrollbar-hidden grid grid-cols-2 gap-4 pb-2 md:grid-cols-5 md:gap-5 lg:grid-cols-6 xl:grid-cols-7">
         {shown.map(item => <PosterCard key={item.id} item={item} compact onToast={onToast} />)}
       </div>
       {href && <Link href={href} data-testid={`link-see-all-mobile-${title}`} className="mt-3 inline-flex text-[11px] font-semibold text-primary sm:hidden">شاهد الكل ←</Link>}
