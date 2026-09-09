@@ -34,7 +34,20 @@ async function detail(id: string) {
     const episodeDetails = await Promise.all(episodes.map(async e => ({ ...e, watchLinks: await db.select().from(watchLinksTable).where(eq(watchLinksTable.episodeId, e.id)).orderBy(asc(watchLinksTable.sortOrder)), watchLinkCount: (await db.select({ n: count() }).from(watchLinksTable).where(eq(watchLinksTable.episodeId, e.id)))[0]?.n ?? 0 })));
     return { ...s, episodeCount: episodes.length, episodes: episodeDetails };
   }));
-  return { ...(await summary(row)), seasons: seasonDetails };
+  const titleWatchLinks =
+    row.type === "movie"
+      ? await db
+          .select()
+          .from(watchLinksTable)
+          .where(eq(watchLinksTable.titleId, id))
+          .orderBy(asc(watchLinksTable.sortOrder))
+      : [];
+  
+  return {
+    ...(await summary(row)),
+    seasons: seasonDetails,
+    watchLinks: titleWatchLinks,
+  };
 }
 async function list(req: any) {
   const { type, status, country, genre, q } = req.query;

@@ -563,8 +563,10 @@ function getEmbedUrl(rawUrl: string) {
    * Watch servers belonging ONLY to the
    * currently selected episode.
    */
-  const watchLinks =
-    activeEpisode?.watchLinks || [];
+      const watchLinks =
+        current.type === "movie"
+          ? remoteDetail?.watchLinks || []
+          : activeEpisode?.watchLinks || [];
 
   /*
    * Selected server.
