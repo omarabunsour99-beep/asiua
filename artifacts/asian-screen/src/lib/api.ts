@@ -20,13 +20,7 @@ export function toLegacyTitle(x: ApiTitle): Title {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   if (init?.body) headers.set("content-type", "application/json");
-  const API_BASE = import.meta.env.VITE_API_URL || "https://asiua.onrender.com";
-
-  const response = await fetch(`${API_BASE}/api${path}`, {
-    ...init,
-    headers,
-    credentials: "include",
-  });
+  const response = await fetch(`/api${path}`, { ...init, headers, credentials: "include" });
   if (!response.ok) {
     const body = await response.json().catch(() => ({})) as { error?: string };
     throw new Error(body.error || `Request failed (${response.status})`);
