@@ -9,7 +9,14 @@ export type ApiTitle = {
 };
 export type Season = { id: string; seriesId: string; seasonNumber: number; title: string | null; episodeCount?: number };
 export type Episode = { id: string; seasonId: string; episodeNumber: number; title: string; description: string | null; releaseDate: string | null; watchLinkCount?: number };
-export type WatchLink = { id: string; episodeId: string; name: string; url: string; sortOrder: number };
+export type WatchLink = {
+  id: string;
+  episodeId: string | null;
+  titleId: string | null;
+  name: string;
+  url: string;
+  sortOrder: number;
+};
 export type Overview = { titles: number; series: number; movies: number; seasons: number; episodes: number; genres: number; upcoming: number; airing: number; completed: number };
 export type AdminUser = { id: string; email: string; role: string };
 export type TitleInput = Omit<ApiTitle, "id" | "genres" | "seasonsCount" | "episodesCount"> & { genres: string[] };
@@ -51,7 +58,14 @@ export const deleteEpisode = (id: string) => request<void>(`/admin/episodes/${id
 export const listLinks = (id: string) => request<WatchLink[]>(`/admin/episodes/${id}/watch-links`);
 export const addLink = (id: string, name: string, url: string) => request<WatchLink>(`/admin/episodes/${id}/watch-links`, { method: "POST", body: JSON.stringify({ name, url }) });
 export const deleteLink = (id: string) => request<void>(`/admin/watch-links/${id}`, { method: "DELETE" });
+export const listMovieLinks = (id: string) =>
+  request<WatchLink[]>(`/admin/titles/${id}/watch-links`);
 
+export const addMovieLink = (id: string, name: string, url: string) =>
+  request<WatchLink>(`/admin/titles/${id}/watch-links`, {
+    method: "POST",
+    body: JSON.stringify({ name, url }),
+  });
 export function usePublicTitles(params: Record<string, string | number | undefined> = {}) {
   const [items, setItems] = useState<ApiTitle[]>([]); const [loading, setLoading] = useState(true); const [error, setError] = useState<Error | null>(null);
   const key = JSON.stringify(params);

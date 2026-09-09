@@ -155,7 +155,94 @@ router.delete("/admin/seasons/:id", async (req, res) => { const [s] = await db.d
 router.get("/admin/seasons/:id/episodes", async (req, res) => res.json(await db.select().from(episodesTable).where(eq(episodesTable.seasonId, req.params.id)).orderBy(asc(episodesTable.episodeNumber))));
 router.post("/admin/seasons/:id/episodes", async (req, res) => { if (!req.body?.episodeNumber || !req.body?.title) { res.status(400).json({ error: "episodeNumber and title required" }); return; } const [e] = await db.insert(episodesTable).values({ id: randomUUID(), seasonId: req.params.id, episodeNumber: Number(req.body.episodeNumber), title: req.body.title, description: req.body.description ?? null, releaseDate: req.body.releaseDate ?? null }).returning(); res.status(201).json({ ...e, watchLinkCount: 0 }); });
 router.delete("/admin/episodes/:id", async (req, res) => { const [e] = await db.delete(episodesTable).where(eq(episodesTable.id, req.params.id)).returning(); e ? res.sendStatus(204) : res.status(404).json({ error: "Episode not found" }); });
-router.get("/admin/episodes/:id/watch-links", async (req, res) => res.json(await db.select().from(watchLinksTable).where(eq(watchLinksTable.episodeId, req.params.id)).orderBy(asc(watchLinksTable.sortOrder))));
-router.post("/admin/episodes/:id/watch-links", async (req, res) => { if (!req.body?.name || !req.body?.url) { res.status(400).json({ error: "name and url required" }); return; } const [w] = await db.insert(watchLinksTable).values({ id: randomUUID(), episodeId: req.params.id, name: req.body.name, url: req.body.url, sortOrder: Number(req.body.sortOrder ?? 0) }).returning(); res.status(201).json(w); });
-router.delete("/admin/watch-links/:id", async (req, res) => { const [w] = await db.delete(watchLinksTable).where(eq(watchLinksTable.id, req.params.id)).returning(); w ? res.sendStatus(204) : res.status(404).json({ error: "Watch link not found" }); });
+router.get("/admin/episodes/:id/watch-links", async (req, res) => {
+  res.json(
+    await db
+      .select()
+      .from(watchLinksTable)
+      .where(eq(watchLinksTable.episodeId, req.params.id))
+      .orderBy(asc(watchLinksTable.sortOrder))
+  );
+});
+
+router.post("/admin/episodes/:id/watch-links", async (req, res) => {
+  if (!req.body?.name || !req.body?.url) {
+    res.status(400).json({ error: "name and url required" });
+    return;
+  }
+
+  const [w] = await db
+    .insert(watchLinksTable)
+    .values({
+      id: randomUUID(),
+      episodeId: req.params.id,
+      name: req.body.name,
+      url: req.body.url,
+      sortOrder: Number(req.body.sortOrder ?? 0),
+    })
+    .returning();
+
+  res.status(201).json(w);
+});
+
+// Movie watch links
+router.get("/admin/titles/:id/watch-links", async (req, res) => {
+  res.json(
+    await db
+      .select()
+      .from(watchLinksTable)
+      .where(eq(watchLinksTable.titleId, req.params.id))
+      .orderBy(asc(watchLinksTable.sortOrder))
+  );
+});
+
+router.post("/admin/titles/:id/watch-links", async (req, res) => {
+  if (!req.body?.name || !req.body?.url) {
+    res.status(400).json({ error: "name and url required" });
+    return;
+  }
+
+  const [title] = await db
+    .select({ id: titlesTable.id, type: titlesTable.type })
+    .from(titlesTable)
+    .where(eq(titlesTable.id, req.params.id))
+    .limit(1);
+
+  if (!title) {
+    res.status(404).json({ error: "Title not found" });
+    return;
+  }
+
+  if (title.type !== "movie") {
+    res.status(400).json({
+      error: "Watch links for this endpoint are only for movies",
+    });
+    return;
+  }
+
+  const [w] = await db
+    .insert(watchLinksTable)
+    .values({
+      id: randomUUID(),
+      titleId: req.params.id,
+      name: req.body.name,
+      url: req.body.url,
+      sortOrder: Number(req.body.sortOrder ?? 0),
+    })
+    .returning();
+
+  res.status(201).json(w);
+});
+
+router.delete("/admin/watch-links/:id", async (req, res) => {
+  const [w] = await db
+    .delete(watchLinksTable)
+    .where(eq(watchLinksTable.id, req.params.id))
+    .returning();
+
+  w
+    ? res.sendStatus(204)
+    : res.status(404).json({ error: "Watch link not found" });
+});
+
 export default router;

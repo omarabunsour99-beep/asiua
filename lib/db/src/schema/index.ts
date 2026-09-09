@@ -72,12 +72,30 @@ export const episodesTable = pgTable("episodes", {
 
 export const watchLinksTable = pgTable("watch_links", {
   id: text("id").primaryKey(),
-  episodeId: text("episode_id").notNull().references(() => episodesTable.id, { onDelete: "cascade" }),
+
+  // الرابط يكون إما للحلقة أو للفيلم
+  episodeId: text("episode_id")
+    .references(() => episodesTable.id, { onDelete: "cascade" }),
+
+  titleId: text("title_id")
+    .references(() => titlesTable.id, { onDelete: "cascade" }),
+
   name: text("name").notNull(),
   url: text("url").notNull(),
   sortOrder: integer("sort_order").notNull().default(0),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  })
+    .notNull()
+    .defaultNow(),
+
+  updatedAt: timestamp("updated_at", {
+    withTimezone: true,
+  })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
 export const insertTitleSchema = createInsertSchema(titlesTable);
