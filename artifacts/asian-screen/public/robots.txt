@@ -1,2 +1,3 @@
 User-agent: *
 Allow: /
+Sitemap: https://asiua-frontend.onrender.com/sitemap.xml
