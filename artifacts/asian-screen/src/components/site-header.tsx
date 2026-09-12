@@ -10,7 +10,7 @@ const dramaLinks = [
   { href: '/series/completed', label: 'الدراما المنتهية مؤخرا' },
   { href: '/country/korea', label: 'الدراما الكورية' },
   { href: '/country/japan', label: 'الدراما اليابانية' },
-  { href: '/series', label: 'الدراما الصينية والتايوانية' },
+  { href: '/country/china-taiwan', label: 'الدراما الصينية والتايوانية' },
   { href: '/country/thailand', label: 'الدراما التايلاندية' },
 ];
 

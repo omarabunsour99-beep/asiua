@@ -3,6 +3,33 @@ import { Check, ChevronLeft, ChevronRight, Play, Plus } from 'lucide-react';
 import { Link } from 'wouter';
 import type { Title } from '@/lib/data';
 import { readStored, toggleStored } from '@/lib/store';
+const countryLabels: Record<string, string> = {
+  Korea: 'كوريا الجنوبية',
+  China: 'الصين',
+  Japan: 'اليابان',
+  Thailand: 'تايلاند',
+  Taiwan: 'تايوان',
+};
+
+const genreLabels: Record<string, string> = {
+  Action: 'أكشن',
+  Adventure: 'مغامرة',
+  Comedy: 'كوميدي',
+  Crime: 'جريمة',
+  Drama: 'دراما',
+  Family: 'عائلي',
+  Mystery: 'غموض',
+  Music: 'موسيقى',
+  Period: 'تاريخي',
+  Political: 'سياسي',
+  Romance: 'رومانسي',
+  Slice: 'حياة يومية',
+  'Slice of Life': 'حياة يومية',
+  Thriller: 'إثارة',
+  Urban: 'حضري',
+  Melodrama: 'ميلودراما',
+};
+
 
 type ToastHandler = (message: string) => void;
 export const statusLabel = (status: Title['status']) => status === 'Upcoming' ? 'قريباً' : status === 'Ongoing' ? 'يبث حالياً' : 'مكتمل';
@@ -45,7 +72,11 @@ export function PosterCard({ item, compact = false, onToast }: { item: Title; co
       <Link href={`/${item.type}/${item.id}`} data-testid={`link-card-caption-${item.id}`} className="block pt-3 focus-visible:outline-none">
         <h3 className="truncate text-[13px] font-semibold text-foreground">{item.title}</h3>
         <p className="mt-1 truncate text-[10px] text-muted-foreground">{item.originalTitle}</p>
-        <p className="mt-1 flex items-center gap-2 text-[10px] text-muted-foreground"><span>{item.year}</span><span className="text-accent">★ {item.rating}</span><span>{item.country}</span></p>
+        <p className="mt-1 flex items-center gap-2 text-[10px] text-muted-foreground">
+          <span>{item.year}</span>
+          <span className="text-accent">★ {item.rating}</span>
+          <span>{countryLabels[item.country] || item.country}</span>
+        </p>
       </Link>
     </article>
   );
@@ -102,7 +133,7 @@ export function FeaturedCarousel({ items }: { items: Title[] }) {
           <h1 data-testid="text-featured-title" className="font-display text-4xl leading-[1.08] text-foreground sm:text-6xl lg:text-7xl">{current.title}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{current.originalTitle}</p>
           <p className="mt-5 max-w-lg text-sm leading-7 text-muted-foreground">{current.description}</p>
-          <div className="mt-5 flex flex-wrap gap-3 text-[11px] text-muted-foreground"><span className="text-accent">★ {current.rating}</span><span>{current.year}</span><span>{current.country}</span><span>{statusLabel(current.status)}</span></div>
+          <div className="mt-5 flex flex-wrap gap-3 text-[11px] text-muted-foreground"><span className="text-accent">★ {current.rating}</span><span>{current.year}</span><span>{countryLabels[current.country] || current.country}</span><span>{statusLabel(current.status)}</span></div>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link href={`/watch/${current.id}`} data-testid="link-hero-watch" className="inline-flex items-center gap-2 rounded-sm bg-primary px-5 py-3 text-xs font-bold text-primary-foreground transition hover:bg-primary/90"><Play size={15} fill="currentColor" /> شاهد الآن</Link>
             <Link href={`/${current.type}/${current.id}`} data-testid="link-hero-details" className="inline-flex items-center gap-2 rounded-sm border border-border bg-background/35 px-5 py-3 text-xs font-bold text-foreground backdrop-blur-sm transition hover:border-primary"><span>التفاصيل</span><ChevronLeft size={15} /></Link>

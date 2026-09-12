@@ -30,14 +30,14 @@ const genreLabels: Record<string, string> = {
   Drama: 'دراما',
   Family: 'عائلي',
   Mystery: 'غموض',
-  Music: 'موسيقي',
+  Music: 'موسيقى',
   Period: 'تاريخي',
   Political: 'سياسي',
   Romance: 'رومانسي',
-  Slice: 'حياة يومية',
   'Slice of Life': 'حياة يومية',
   Thriller: 'إثارة',
-  Urban: 'مدني',
+  Urban: 'حضري',
+  Melodrama: 'ميلودراما',
 };
 
 const PAGE_SIZE = 12;
